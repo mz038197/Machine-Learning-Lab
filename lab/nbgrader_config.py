@@ -8,7 +8,7 @@ c = get_config()
 # server set up.
 c.CourseDirectory.course_id = "lab"
 
-c.IncludeHeaderFooter.header = "source/header.ipynb"
+#c.IncludeHeaderFooter.header = "source/header.ipynb"
 
 ###############################################################################
 # End additions by nbgrader quickstart
