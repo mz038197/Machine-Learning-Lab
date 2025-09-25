@@ -8,7 +8,7 @@ c = get_config()
 # server set up.
 c.CourseDirectory.course_id = "lab"
 
-#c.IncludeHeaderFooter.header = "source/header.ipynb"
+#c.IncludeHeaderFooter.header = "teacher/header.ipynb"
 
 ###############################################################################
 # End additions by nbgrader quickstart
@@ -367,7 +367,7 @@ c.CourseDirectory.release_directory = 'student'
 #  assignments. This corresponds to the `nbgrader_step` variable in the
 #  `directory_structure` config option.
 #  Default: 'source'
-# c.CourseDirectory.source_directory = 'source'
+c.CourseDirectory.source_directory = 'teacher'
 
 ## The name of the directory that contains notebooks with both solutions and
 #  instantiated test code (i.e., all AUTOTEST directives are removed and replaced
@@ -624,7 +624,7 @@ c.CourseDirectory.release_directory = 'student'
 
 ## The code snippet that will replace code solutions
 #  Default: {'python': '# YOUR CODE HERE\nraise NotImplementedError()', 'R': '# YOUR CODE HERE\nfail()', 'matlab': "% YOUR CODE HERE\nerror('No Answer Given!')", 'octave': "% YOUR CODE HERE\nerror('No Answer Given!')", 'sas': '/* YOUR CODE HERE */\n %notImplemented;', 'java': '// YOUR CODE HERE'}
-# c.ClearSolutions.code_stub = {'python': '# YOUR CODE HERE\nraise NotImplementedError()', 'R': '# YOUR CODE HERE\nfail()', 'matlab': "% YOUR CODE HERE\nerror('No Answer Given!')", 'octave': "% YOUR CODE HERE\nerror('No Answer Given!')", 'sas': '/* YOUR CODE HERE */\n %notImplemented;', 'java': '// YOUR CODE HERE'}
+c.ClearSolutions.code_stub = {'python': '# YOUR CODE HERE\n# YOUR CODE ENDS HERE'}
 
 ## Whether to use this preprocessor when running nbgrader
 #  See also: NbGraderPreprocessor.enabled
