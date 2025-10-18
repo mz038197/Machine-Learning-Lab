@@ -15,9 +15,11 @@
 練習測驗 : [使用梯度下降訓練模型](https://quizzes.vanscoding.com/quiz/F263LV)
 
 ### **Classification**
-1. [Classification](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Classification.ipynb)
+1. **分類 (Classification)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Classification.ipynb) ]
 
-2. [Sigmoid Function](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Sigmoid_Function.ipynb)
+2. **S形函數 (Sigmoid Function)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Sigmoid_Function.ipynb) ]
 
 3. **決策邊界 (Decision Boundary)**<br>
         [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Decision_Boundary.ipynb) ]
