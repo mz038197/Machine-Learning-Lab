@@ -19,7 +19,7 @@
 
 2. [Sigmoid Function](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Sigmoid_Function.ipynb)
 
-3. **決策邊界 (Decision Boundary)**
+3. **決策邊界 (Decision Boundary)**<br>
         [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Decision_Boundary.ipynb)<br>
         [測驗](https://quizzes.vanscoding.com/quiz/9INCST)
 
