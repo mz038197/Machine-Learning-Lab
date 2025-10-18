@@ -21,7 +21,6 @@
 
 3. **決策邊界 (Decision Boundary)**<br>
         [[講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Decision_Boundary.ipynb)]
-        <p>   </p>
         [[測驗](https://quizzes.vanscoding.com/quiz/9INCST)]
 
 4. [Logistic Loss](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Logistic_Loss.ipynb)
