@@ -19,10 +19,10 @@
 
 2. [Sigmoid Function](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Sigmoid_Function.ipynb)
 
-3. [Decision Boundary](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Decision_Boundary.ipynb)<br>
-練習測驗 : [使用邏輯迴歸進行分類](https://quizzes.vanscoding.com/quiz/9INCST)
+3. [決策邊界講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Decision_Boundary.ipynb)<br>
+[測驗:使用邏輯迴歸進行分類](https://quizzes.vanscoding.com/quiz/9INCST)
 
 4. [Logistic Loss](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Logistic_Loss.ipynb)
 
-5. [Cost Function for Logistic Regression](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Cost_Function_for_Logistic_Regression.ipynb)<br>
-練習測驗 : [邏輯回歸的成本函數](https://quizzes.vanscoding.com/quiz/LZDF1G)
+5. [邏輯回歸的成本函數講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Cost_Function_for_Logistic_Regression.ipynb)<br>
+[測驗:邏輯回歸的成本函數](https://quizzes.vanscoding.com/quiz/LZDF1G)
