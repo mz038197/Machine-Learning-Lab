@@ -8,8 +8,8 @@
 
 2. [Model Representation](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Model%20Representation.ipynb)
 
-3. [Cost Function](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Cost%20Function.ipynb)
-練習測驗 : [迴歸](https://quizzes.vanscoding.com/quiz/16YITA)<br>
+3. [Cost Function](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Cost%20Function.ipynb)<br>
+練習測驗 : [迴歸](https://quizzes.vanscoding.com/quiz/16YITA)
 
 4. [Gradient Descent for Linear Regression](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Gradient%20Descent%20for%20Linear%20Regression.ipynb)<br>
 練習測驗 : [使用梯度下降訓練模型](https://quizzes.vanscoding.com/quiz/F263LV)
@@ -24,4 +24,5 @@
 
 4. [Logistic Loss](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Logistic_Loss.ipynb)
 
-5. [Cost Function for Logistic Regression](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Cost_Function_for_Logistic_Regression.ipynb)
+5. [Cost Function for Logistic Regression](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Cost_Function_for_Logistic_Regression.ipynb)<br>
+練習測驗 : [邏輯回歸的成本函數](https://quizzes.vanscoding.com/quiz/LZDF1G)
