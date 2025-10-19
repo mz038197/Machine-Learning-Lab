@@ -33,3 +33,8 @@
         [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Cost_Function_for_Logistic_Regression.ipynb) ]
         &nbsp;
         [ [測驗](https://quizzes.vanscoding.com/quiz/LZDF1G) ]
+
+6. **邏輯回歸的梯度下降 (Gradient Descent for Logistic Regression)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Gradient_Descent_for_Logistic_Regression.ipynb) ]
+        &nbsp;
+        [ [測驗](https://quizzes.vanscoding.com/quiz/LZDF1G) ]
