@@ -3,38 +3,50 @@
 ## **上課講義**
 
 ### **Part1 : Regression**
-1. [Introduction](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Introduction.ipynb)<br>
-練習測驗 : [監督式學習 vs 非監督式學習](https://quizzes.vanscoding.com/quiz/EINTP6)
+1. **機器學習導論 (Introduction)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/01_Introduction.ipynb) ]
+        &nbsp;
+        [ [測驗](https://quizzes.vanscoding.com/quiz/EINTP6) ]
 
-2. [Model Representation](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Model%20Representation.ipynb)
+2. **模型表示 (Model Representation)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/02_Model_Representation.ipynb) ]
 
-3. [Cost Function](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Cost%20Function.ipynb)<br>
-練習測驗 : [迴歸](https://quizzes.vanscoding.com/quiz/16YITA)
+3. **線性迴歸的成本函數 (Cost Function for Linear Regression)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/03_Cost_Function_for_Linear_Regression.ipynb) ]
+        &nbsp;
+        [ [測驗](https://quizzes.vanscoding.com/quiz/16YITA) ]
 
-4. [Gradient Descent for Linear Regression](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/Gradient%20Descent%20for%20Linear%20Regression.ipynb)<br>
-練習測驗 : [使用梯度下降訓練模型](https://quizzes.vanscoding.com/quiz/F263LV)
+4. **線性迴歸的梯度下降 (Gradient Descent for Linear Regression)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
+        &nbsp;
+        [ [測驗](https://quizzes.vanscoding.com/quiz/F263LV) ]
 
 ### **Part2 : Classification**
 1. **分類 (Classification)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Classification.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/01_Classification.ipynb) ]
 
 2. **S形函數 (Sigmoid Function)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Sigmoid_Function.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/02_Sigmoid_Function.ipynb) ]
 
 3. **決策邊界 (Decision Boundary)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Decision_Boundary.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/03_Decision_Boundary.ipynb) ]
         &nbsp;
         [ [測驗](https://quizzes.vanscoding.com/quiz/9INCST) ]
 
 4. **邏輯迴歸損失函數 (Logistic Loss)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Logistic_Loss.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/04_Logistic_Loss.ipynb) ]
 
 5. **邏輯回歸的成本函數 (Cost Function for Logistic Regression)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Cost_Function_for_Logistic_Regression.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/05_Cost_Function_for_Logistic_Regression.ipynb) ]
         &nbsp;
         [ [測驗](https://quizzes.vanscoding.com/quiz/LZDF1G) ]
 
-6. **邏輯回歸的梯度下降 (Gradient Descent for Logistic Regression)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/Gradient_Descent_for_Logistic_Regression.ipynb) ]
+6. **邏輯迴歸的梯度下降 (Gradient Descent for Logistic Regression)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/06_Gradient_Descent_for_Logistic_Regression.ipynb) ]
+        &nbsp;
+        [ [測驗](https://quizzes.vanscoding.com/quiz/FJL7Y3) ]
+
+7. **套用正則化解決過度擬合問題 (Regularization to Reduce Overfitting)**<br>
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/08_Overfitting.ipynb) ]
         &nbsp;
         [ [測驗](https://quizzes.vanscoding.com/quiz/FJL7Y3) ]
