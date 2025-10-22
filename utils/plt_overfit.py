@@ -165,6 +165,7 @@ class overfit_example():
     # pylint: disable=missing-function-docstring
     # pylint: disable=attribute-defined-outside-init
     def __init__(self, regularize=False):
+        
         self.regularize=regularize
         self.lambda_=0
         fig = plt.figure( figsize=(8,6))
@@ -204,7 +205,7 @@ class overfit_example():
             self.fig.text(0.6, 0.02+0.21, r"lambda($\lambda$)", fontsize=12)
             self.lambut = button_manager(fig,[0.6,0.02,0.15,0.2 ], ['0.0','0.2','0.4','0.6','0.8','1'],
                                         [True, False, False, False, False, False], self.updt_lambda)
-
+        
         #self.regbut =  button_manager(fig, [0.8, 0.08,0.24,0.15], ["Regularize"],
         #                               [False], self.toggle_reg)
         #self.logistic_data()
