@@ -49,4 +49,4 @@
 7. **套用正則化解決過度擬合問題 (Regularization to Reduce Overfitting)**<br>
 * 過度擬合 :&nbsp;[ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/08_Overfitting.ipynb) ]
 * 正則化 :&nbsp;[ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/08_Overfitting.ipynb) ]
-* 章節測驗 [ [連結](https://quizzes.vanscoding.com/quiz/2PN4K0) ]
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/2PN4K0) ]
