@@ -4,22 +4,26 @@
 
 ### **Part1 : Regression**
 1. **機器學習導論 (Introduction)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/01_Introduction.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/01_Introduction.ipynb) ]
         &nbsp;
         [ [測驗](https://quizzes.vanscoding.com/quiz/EINTP6) ]
 
 2. **模型表示 (Model Representation)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/02_Model_Representation.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/02_Model_Representation.ipynb) ]
 
 3. **線性迴歸的成本函數 (Cost Function for Linear Regression)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/03_Cost_Function_for_Linear_Regression.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/03_Cost_Function_for_Linear_Regression.ipynb) ]
         &nbsp;
         [ [測驗](https://quizzes.vanscoding.com/quiz/16YITA) ]
 
 4. **線性迴歸的梯度下降 (Gradient Descent for Linear Regression)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/notebooks/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
+        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
         &nbsp;
         [ [測驗](https://quizzes.vanscoding.com/quiz/F263LV) ]
+
+5. **多輸入特徵的線性迴歸 (Linear Regression with Multiple Variables)**<br>
+* 向量化 :&nbsp;[ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/05_Vectorization.ipynb) ]
+
 
 ### **Part2 : Classification**
 1. **分類 (Classification)**<br>
@@ -48,5 +52,7 @@
 
 7. **套用正則化解決過度擬合問題 (Regularization to Reduce Overfitting)**<br>
 * 過度擬合 :&nbsp;[ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/08_Overfitting.ipynb) ]
+
 * 正則化 :&nbsp;[ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/09_Regularization.ipynb) ]
+
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/2PN4K0) ]
