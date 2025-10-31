@@ -1,4 +1,4 @@
-# Machine Learning Lab
+# **監督式機器學習：迴歸與分類**
 
 ## **上課講義**
 
@@ -38,7 +38,7 @@
 3. **決策邊界 (Decision Boundary)**<br>
         [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/03_Decision_Boundary.ipynb) ]
         &nbsp;
-        [ [實驗室](https://quizzes.vanscoding.com/quiz/9INCST) ]
+        [ [測驗](https://quizzes.vanscoding.com/quiz/9INCST) ]
 
 4. **邏輯迴歸損失函數 (Logistic Loss)**<br>
         [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/04_Logistic_Loss.ipynb) ]
