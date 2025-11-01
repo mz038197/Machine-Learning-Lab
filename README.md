@@ -22,6 +22,7 @@
         [ [測驗](https://quizzes.vanscoding.com/quiz/F263LV) ]
 
 5. **多輸入特徵的線性迴歸 (Linear Regression with Multiple Variables)**<br>
+
         * 向量化 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/05_Vectorization.ipynb) ]
 
         * 多特徵線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/06_Multiple_Variable.ipynb) ]
@@ -29,6 +30,7 @@
         * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
 
 6. **線性迴歸的實用技巧 (Practical Tips for Linear Regressoin)**<br>
+
         * 特徵縮放與學習率 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/07_Feature_Scaling_and_Learning_Rate.ipynb) ]
 
         * 特徵工程與多項式迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/08_FeatEng_PolyReg.ipynb) ]
