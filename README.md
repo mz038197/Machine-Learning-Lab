@@ -29,7 +29,7 @@
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
 
 6. **線性迴歸的實用技巧 (Practical Tips for Linear Regressoin)**<br>
-* 特徵縮放與學習率 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/05_Vectorization.ipynb) ]
+* 特徵縮放與學習率 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/07_Feature_Scaling_and_Learning_Rate.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
 
