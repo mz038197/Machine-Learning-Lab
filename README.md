@@ -28,6 +28,11 @@
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
 
+6. **線性迴歸的實用技巧 (Practical Tips for Linear Regressoin)**<br>
+* 特徵縮放與學習率 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/05_Vectorization.ipynb) ]
+
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
+
 ### **Part2 : Classification**
 1. **分類 (Classification)**<br>
         [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/01_Classification.ipynb) ]
