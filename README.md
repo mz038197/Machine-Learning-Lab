@@ -35,6 +35,8 @@
 
 * 特徵工程與多項式迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/08_FeatEng_PolyReg.ipynb) ]
 
+* 使用 scikit-learn 的線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/09_Sklearn_GD.ipynb) ]
+
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
 
 ### **Part2 : Classification**
