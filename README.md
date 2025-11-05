@@ -7,7 +7,7 @@
 1. **機器學習導論 (Introduction)**<br>
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/EINTP6) ]
-
+<br>
 
 2. **單變量線性迴歸 (Linear Regression with One Variable)**<br>
 
@@ -16,14 +16,14 @@
 * 線性迴歸的成本函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/03_Cost_Function_for_Linear_Regression.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/16YITA) ]
-
+<br>
 
 3. **訓練線性迴歸 (Training Linear Regression)**<br>
 
 * 線性迴歸的梯度下降 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/F263LV) ]
-
+<br>
 
 4. **多輸入特徵的線性迴歸 (Linear Regression with Multiple Variables)**<br>
 
@@ -32,7 +32,7 @@
 * 多特徵線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/06_Multiple_Variable.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
-
+<br>
 
 5. **線性迴歸的實用技巧 (Practical Tips for Linear Regressoin)**<br>
 
@@ -57,7 +57,7 @@
 * 決策邊界 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/03_Decision_Boundary.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/9INCST) ]
-
+<br>
 
 2. **邏輯回歸的成本函數 (Cost Function for Logistic Regression)**<br>
 
@@ -66,14 +66,14 @@
 * 邏輯迴歸成本函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/05_Cost_Function_for_Logistic_Regression.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/LZDF1G) ]
-
+<br>
 
 3. **訓練邏輯迴歸 (Training Logistic Regression)**<br>
 
 * 邏輯迴歸的梯度下降 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/06_Gradient_Descent_for_Logistic_Regression.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/FJL7Y3) ]
-
+<br>
 
 4. **套用正則化解決過度擬合問題 (Regularization to Reduce Overfitting)**<br>
 
