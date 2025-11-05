@@ -3,25 +3,29 @@
 ## **上課講義**
 
 ### **Part1 : Regression**
+
 1. **機器學習導論 (Introduction)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/01_Introduction.ipynb) ]
-        &nbsp;
-        [ [測驗](https://quizzes.vanscoding.com/quiz/EINTP6) ]
 
-2. **模型表示 (Model Representation)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/02_Model_Representation.ipynb) ]
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/EINTP6) ]
 
-3. **線性迴歸的成本函數 (Cost Function for Linear Regression)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/03_Cost_Function_for_Linear_Regression.ipynb) ]
-        &nbsp;
-        [ [測驗](https://quizzes.vanscoding.com/quiz/16YITA) ]
 
-4. **線性迴歸的梯度下降 (Gradient Descent for Linear Regression)**<br>
-        [ [講義](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
-        &nbsp;
-        [ [測驗](https://quizzes.vanscoding.com/quiz/F263LV) ]
+2. **單變量線性迴歸 (Linear Regression with One Variable)**<br>
 
-5. **多輸入特徵的線性迴歸 (Linear Regression with Multiple Variables)**<br>
+* 線性迴歸模型 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/02_Model_Representation.ipynb) ]
+
+* 線性迴歸的成本函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/03_Cost_Function_for_Linear_Regression.ipynb) ]
+
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/16YITA) ]
+
+
+3. **訓練線性迴歸 (Training Linear Regression)**<br>
+
+* 線性迴歸的梯度下降 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
+
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/F263LV) ]
+
+
+4. **多輸入特徵的線性迴歸 (Linear Regression with Multiple Variables)**<br>
 
 * 向量化 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/05_Vectorization.ipynb) ]
 
@@ -29,7 +33,8 @@
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
 
-6. **線性迴歸的實用技巧 (Practical Tips for Linear Regressoin)**<br>
+
+5. **線性迴歸的實用技巧 (Practical Tips for Linear Regressoin)**<br>
 
 * 特徵縮放與學習率 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/07_Feature_Scaling_and_Learning_Rate.ipynb) ]
 
@@ -39,32 +44,39 @@
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/QXFTH8) ]
 
+--
+
 ### **Part2 : Classification**
+
 1. **分類 (Classification)**<br>
-        [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/01_Classification.ipynb) ]
 
-2. **S形函數 (Sigmoid Function)**<br>
-        [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/02_Sigmoid_Function.ipynb) ]
+* 分類 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/01_Classification.ipynb) ]
 
-3. **決策邊界 (Decision Boundary)**<br>
-        [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/03_Decision_Boundary.ipynb) ]
-        &nbsp;
-        [ [測驗](https://quizzes.vanscoding.com/quiz/9INCST) ]
+* S形函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/02_Sigmoid_Function.ipynb) ]
 
-4. **邏輯迴歸損失函數 (Logistic Loss)**<br>
-        [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/04_Logistic_Loss.ipynb) ]
+* 決策邊界 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/03_Decision_Boundary.ipynb) ]
 
-5. **邏輯回歸的成本函數 (Cost Function for Logistic Regression)**<br>
-        [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/05_Cost_Function_for_Logistic_Regression.ipynb) ]
-        &nbsp;
-        [ [測驗](https://quizzes.vanscoding.com/quiz/LZDF1G) ]
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/9INCST) ]
 
-6. **邏輯迴歸的梯度下降 (Gradient Descent for Logistic Regression)**<br>
-        [ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/06_Gradient_Descent_for_Logistic_Regression.ipynb) ]
-        &nbsp;
-        [ [測驗](https://quizzes.vanscoding.com/quiz/FJL7Y3) ]
 
-7. **套用正則化解決過度擬合問題 (Regularization to Reduce Overfitting)**<br>
+2. **邏輯回歸的成本函數 (Cost Function for Logistic Regression)**<br>
+
+* 邏輯迴歸損失函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/04_Logistic_Loss.ipynb) ]
+
+* 邏輯迴歸成本函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/05_Cost_Function_for_Logistic_Regression.ipynb) ]
+
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/LZDF1G) ]
+
+
+3. **訓練邏輯迴歸 (Training Logistic Regression)**<br>
+
+* 邏輯迴歸的梯度下降 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/06_Gradient_Descent_for_Logistic_Regression.ipynb) ]
+
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/FJL7Y3) ]
+
+
+4. **套用正則化解決過度擬合問題 (Regularization to Reduce Overfitting)**<br>
+
 * 過度擬合 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/08_Overfitting.ipynb) ]
 
 * 正則化 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Classification/09_Regularization.ipynb) ]
