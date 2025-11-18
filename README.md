@@ -13,14 +13,14 @@
 
 * 線性迴歸模型 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/02_Model_Representation.ipynb) ]
 
-* 線性迴歸的成本函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/03_Cost_Function_for_Linear_Regression.ipynb) ]
+* 線性迴歸的成本函數 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/03_Cost_Function_for_Linear_Regression.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/16YITA) ]
 <br>
 
 3. **訓練線性迴歸 (Training Linear Regression)**<br>
 
-* 線性迴歸的梯度下降 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
+* 線性迴歸的梯度下降 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/04_Gradient_Descent_for_Linear_Regression.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/F263LV) ]
 <br>
