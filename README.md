@@ -27,9 +27,9 @@
 
 4. **多輸入特徵的線性迴歸 (Linear Regression with Multiple Variables)**<br>
 
-* 向量化 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/05_Vectorization.ipynb) ]
+* 向量化 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/05_Vectorization.ipynb) ]
 
-* 多特徵線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/06_Multiple_Variable.ipynb) ]
+* 多特徵線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/06_Multiple_Variable.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/M7ZLQP) ]
 <br>
