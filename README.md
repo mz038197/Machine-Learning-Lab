@@ -36,11 +36,11 @@
 
 5. **線性迴歸的實用技巧 (Practical Tips for Linear Regressoin)**<br>
 
-* 特徵縮放與學習率 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/07_Feature_Scaling_and_Learning_Rate.ipynb) ]
+* 特徵縮放與學習率 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/07_Feature_Scaling_and_Learning_Rate.ipynb) ]
 
-* 特徵工程與多項式迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/08_FeatEng_PolyReg.ipynb) ]
+* 特徵工程與多項式迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/08_FeatEng_PolyReg.ipynb) ]
 
-* 使用 scikit-learn 的線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/Regression/09_Sklearn_GD.ipynb) ]
+* 使用 scikit-learn 的線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/09_Sklearn_GD.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/QXFTH8) ]
 
