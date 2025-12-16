@@ -53,9 +53,7 @@
 
 * 多變量線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/11_Multiple_Linear_Regression.ipynb) ]
 
-<br>
 ---
-<br>
 
 ### **Part2 : Classification**
 
