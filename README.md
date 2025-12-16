@@ -44,6 +44,13 @@
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/QXFTH8) ]
 
+6. **測驗實驗**<br>
+
+* 單變量線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/10_Linear_Regression.ipynb) ]
+
+* 多變量線性迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/student/Regression/11_Multiple_Linear_Regression.ipynb) ]
+
+
 ---
 
 ### **Part2 : Classification**
