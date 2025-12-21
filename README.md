@@ -94,7 +94,15 @@
 
 ---
 
-### **Part3 : Deep Learning**
+### **Part3 : Neural Networks**
+
+1. **直覺理解類神經網路 (Neural Networks Intuition)**<br>
+
+* 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/ZMYM6O) ]
+
+---
+
+### **Part4 : Deep Learning**
 
 1. **卷積神經網路 (Convolutional Neural Network, CNN)**<br>
 
