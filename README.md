@@ -105,6 +105,8 @@
 
 * 神經元與網路層 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/NeuralNetworks/01_Neurons_and_Layers.ipynb) ]
 
+* 神經元與網路層 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning/blob/main/lab/teacher/NeuralNetworks/01_Neurons_and_Layers_PyTorch.ipynb) ]
+
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/LZDF1G) ]
 <br>
