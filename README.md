@@ -81,14 +81,16 @@
 
 * 邏輯迴歸的梯度下降 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning-Lab/blob/main/lab/student/Classification/06_Gradient_Descent_for_Logistic_Regression.ipynb) ]
 
+* 使用 scikit-learn 的邏輯迴歸 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning-Lab/blob/main/lab/student/Classification/07_Scikit_Learn_Logistic_Regression.ipynb) ]
+
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/FJL7Y3) ]
 <br>
 
 4. **套用正則化解決過度擬合問題 (Regularization to Reduce Overfitting)**<br>
 
-* 過度擬合 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning-Lab/blob/main/lab/teacher/Classification/08_Overfitting.ipynb) ]
+* 過度擬合 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning-Lab/blob/main/lab/student/Classification/08_Overfitting.ipynb) ]
 
-* 正則化 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning-Lab/blob/main/lab/teacher/Classification/09_Regularization.ipynb) ]
+* 正則化 :&nbsp;[ [實驗室](https://colab.research.google.com/github/mz038197/Machine-Learning-Lab/blob/main/lab/student/Classification/09_Regularization.ipynb) ]
 
 * 章節測驗 :&nbsp;[ [連結](https://quizzes.vanscoding.com/quiz/2PN4K0) ]
 
