@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 FOLDER_NAME = "線性回歸"
-NOTEBOOK_NAME = "線性回歸_濃縮草案.ipynb"
+NOTEBOOK_NAME = "線性回歸.ipynb"
 DATA_FILES = ("ex1data1.txt", "ex1data2.txt")
 PACKAGES = ("numpy", "matplotlib", "scikit-learn", "ipykernel")
 

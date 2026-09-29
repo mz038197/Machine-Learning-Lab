@@ -3,7 +3,7 @@ from pathlib import Path
 
 from add_linear_regression.core import materialize
 
-NOTEBOOK = "線性回歸_濃縮草案.ipynb"
+NOTEBOOK = "線性回歸.ipynb"
 PACKAGES = ["numpy", "matplotlib", "scikit-learn", "ipykernel"]
 
 
