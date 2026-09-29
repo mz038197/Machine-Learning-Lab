@@ -131,12 +131,12 @@ def _load_find_data_dir():
             end = source.index("\nDATA_DIR")
             namespace: dict[str, object] = {}
             exec("from pathlib import Path\n\n" + source[start:end], namespace)
-            return namespace["find_data_dir"]
+            return namespace
     raise AssertionError("notebook 裡沒有 find_data_dir")
 
 
 def test_notebook_uses_data_beside_itself_not_a_root_decoy(tmp_path: Path, monkeypatch) -> None:
-    find_data_dir = _load_find_data_dir()
+    find_data_dir = _load_find_data_dir()["find_data_dir"]
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "ex1data1.txt").write_text("old", encoding="utf-8")
     experiment = tmp_path / "線性回歸"
@@ -150,7 +150,7 @@ def test_notebook_uses_data_beside_itself_not_a_root_decoy(tmp_path: Path, monke
 
 
 def test_notebook_in_tool_directory_ignores_repo_root_data(tmp_path: Path, monkeypatch) -> None:
-    find_data_dir = _load_find_data_dir()
+    find_data_dir = _load_find_data_dir()["find_data_dir"]
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "ex1data1.txt").write_text("course", encoding="utf-8")
     tool = tmp_path / "linear-regression"
@@ -160,3 +160,20 @@ def test_notebook_in_tool_directory_ignores_repo_root_data(tmp_path: Path, monke
     monkeypatch.chdir(tmp_path)
 
     assert (find_data_dir() / "ex1data1.txt").read_text(encoding="utf-8") == "tool"
+
+
+def test_editor_notebook_path_uses_that_folder(tmp_path: Path, monkeypatch) -> None:
+    namespace = _load_find_data_dir()
+    find_data_dir = namespace["find_data_dir"]
+    decoy = tmp_path / "線性回歸"
+    (decoy / "data").mkdir(parents=True)
+    (decoy / NOTEBOOK).write_text("decoy", encoding="utf-8")
+    (decoy / "data" / "ex1data1.txt").write_text("decoy", encoding="utf-8")
+    opened = tmp_path / "opened"
+    (opened / "data").mkdir(parents=True)
+    (opened / NOTEBOOK).write_text("opened", encoding="utf-8")
+    (opened / "data" / "ex1data1.txt").write_text("opened", encoding="utf-8")
+    namespace["__vsc_ipynb_file__"] = str(opened / NOTEBOOK)
+    monkeypatch.chdir(tmp_path)
+
+    assert (find_data_dir() / "ex1data1.txt").read_text(encoding="utf-8") == "opened"
