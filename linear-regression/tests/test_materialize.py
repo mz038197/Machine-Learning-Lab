@@ -122,7 +122,13 @@ def test_uses_the_given_directory_not_a_parent_project(tmp_path: Path) -> None:
 
 
 def _load_find_data_dir():
-    notebook = Path(__file__).resolve().parents[1] / NOTEBOOK
+    notebook = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "add_linear_regression"
+        / "experiment"
+        / NOTEBOOK
+    )
     document = json.loads(notebook.read_text(encoding="utf-8"))
     for cell in document["cells"]:
         source = "".join(cell.get("source", []))

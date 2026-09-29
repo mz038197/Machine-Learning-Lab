@@ -22,9 +22,6 @@ def default_source_dir() -> Path:
     packaged = Path(__file__).resolve().parent / "experiment"
     if (packaged / NOTEBOOK_NAME).is_file():
         return packaged
-    tool_dir = Path(__file__).resolve().parents[2]
-    if (tool_dir / NOTEBOOK_NAME).is_file():
-        return tool_dir
     raise FileNotFoundError("找不到實驗本。")
 
 
