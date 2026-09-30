@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "add-logistic-regression"
+version = "0.1.0"
+description = "把邏輯回歸實驗夾寫進學生專案，並裝上相依。"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+add-logistic-regression = "add_logistic_regression.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+add_logistic_regression = ["experiment/*", "experiment/data/*"]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
