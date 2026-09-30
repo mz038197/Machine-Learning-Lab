@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "add-neural-networks"
+version = "0.1.0"
+description = "把神經網路實驗夾寫進學生專案，並裝上相依。"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+add-neural-networks = "add_neural_networks.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+add_neural_networks = ["experiment/*"]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
