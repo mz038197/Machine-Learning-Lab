@@ -1,0 +1,17 @@
+[project]
+name = "machine-learning-lab"
+version = "0.1.0"
+description = "監督式機器學習實驗講義"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib==3.10.7",
+    "numpy>=2",
+    "ipywidgets==8.1.7",
+    "nbstripout==0.8.1",
+    "ipympl==0.9.8",
+    "scikit-learn==1.7.2",
+    "tensorflow>=2.21.0",
+]
+
+[tool.uv]
+package = false
