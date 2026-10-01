@@ -8,7 +8,7 @@ from pathlib import Path
 
 FOLDER_NAME = "線性回歸"
 NOTEBOOK_NAME = "線性回歸.ipynb"
-DATA_FILES = ("ex1data1.txt", "ex1data2.txt")
+DATA_FILES = ("ex1data1.csv", "ex1data2.csv")
 PACKAGES = ("numpy", "matplotlib", "scikit-learn", "ipykernel")
 
 

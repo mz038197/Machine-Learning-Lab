@@ -8,7 +8,7 @@ from pathlib import Path
 
 FOLDER_NAME = "邏輯回歸"
 NOTEBOOK_NAME = "邏輯回歸.ipynb"
-DATA_FILES = ("ex2data1.txt", "ex2data2.txt")
+DATA_FILES = ("ex2data1.csv", "ex2data2.csv")
 PACKAGES = ("numpy", "matplotlib", "scikit-learn", "ipykernel")
 
 

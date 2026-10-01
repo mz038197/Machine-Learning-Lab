@@ -11,8 +11,8 @@ def _source(tmp_path: Path) -> Path:
     source = tmp_path / "source"
     (source / "data").mkdir(parents=True)
     (source / NOTEBOOK).write_text("notebook", encoding="utf-8")
-    (source / "data" / "ex1data1.txt").write_text("1,2\n", encoding="utf-8")
-    (source / "data" / "ex1data2.txt").write_text("3,4,5\n", encoding="utf-8")
+    (source / "data" / "ex1data1.csv").write_text("1,2\n", encoding="utf-8")
+    (source / "data" / "ex1data2.csv").write_text("3,4,5\n", encoding="utf-8")
     return source
 
 
@@ -34,8 +34,8 @@ def test_writes_experiment_folder_and_adds_packages(tmp_path: Path) -> None:
     folder = project / "線性回歸"
     assert result.status == "written"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "notebook"
-    assert (folder / "data" / "ex1data1.txt").read_text(encoding="utf-8") == "1,2\n"
-    assert (folder / "data" / "ex1data2.txt").read_text(encoding="utf-8") == "3,4,5\n"
+    assert (folder / "data" / "ex1data1.csv").read_text(encoding="utf-8") == "1,2\n"
+    assert (folder / "data" / "ex1data2.csv").read_text(encoding="utf-8") == "3,4,5\n"
     assert calls == [
         ["uv", "add", "--directory", str(project), *PACKAGES],
     ]
@@ -74,7 +74,7 @@ def test_existing_folder_is_left_alone_while_packages_are_added(tmp_path: Path) 
 
     assert result.status == "skipped"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "student edit"
-    assert not (folder / "data" / "ex1data1.txt").exists()
+    assert not (folder / "data" / "ex1data1.csv").exists()
     assert calls[0][1] == "add"
 
 
@@ -83,7 +83,7 @@ def test_incomplete_write_removes_the_folder(tmp_path: Path) -> None:
     project.mkdir()
     (project / "pyproject.toml").write_text("x", encoding="utf-8")
     source = _source(tmp_path)
-    (source / "data" / "ex1data2.txt").unlink()
+    (source / "data" / "ex1data2.csv").unlink()
     calls: list[list[str]] = []
 
     result = materialize(project, source_dir=source, run_uv=_runner(calls))
@@ -105,7 +105,7 @@ def test_failed_package_install_keeps_a_complete_folder(tmp_path: Path) -> None:
 
     assert result.status == "failed"
     assert (project / "線性回歸" / NOTEBOOK).is_file()
-    assert (project / "線性回歸" / "data" / "ex1data2.txt").is_file()
+    assert (project / "線性回歸" / "data" / "ex1data2.csv").is_file()
 
 
 def test_uses_the_given_directory_not_a_parent_project(tmp_path: Path) -> None:
@@ -142,30 +142,34 @@ def _load_find_data_dir():
 
 
 def test_notebook_uses_data_beside_itself_not_a_root_decoy(tmp_path: Path, monkeypatch) -> None:
-    find_data_dir = _load_find_data_dir()["find_data_dir"]
+    namespace = _load_find_data_dir()
+    find_data_dir = namespace["find_data_dir"]
     (tmp_path / "data").mkdir()
-    (tmp_path / "data" / "ex1data1.txt").write_text("old", encoding="utf-8")
+    (tmp_path / "data" / "ex1data1.csv").write_text("old", encoding="utf-8")
     experiment = tmp_path / "線性回歸"
     (experiment / "data").mkdir(parents=True)
     (experiment / NOTEBOOK).write_text("notebook", encoding="utf-8")
-    (experiment / "data" / "ex1data1.txt").write_text("student", encoding="utf-8")
+    (experiment / "data" / "ex1data1.csv").write_text("student", encoding="utf-8")
+    namespace["__vsc_ipynb_file__"] = str(experiment / NOTEBOOK)
     monkeypatch.chdir(tmp_path)
 
     assert find_data_dir() == (experiment / "data").resolve()
-    assert (find_data_dir() / "ex1data1.txt").read_text(encoding="utf-8") == "student"
+    assert (find_data_dir() / "ex1data1.csv").read_text(encoding="utf-8") == "student"
 
 
 def test_notebook_in_tool_directory_ignores_repo_root_data(tmp_path: Path, monkeypatch) -> None:
-    find_data_dir = _load_find_data_dir()["find_data_dir"]
+    namespace = _load_find_data_dir()
+    find_data_dir = namespace["find_data_dir"]
     (tmp_path / "data").mkdir()
-    (tmp_path / "data" / "ex1data1.txt").write_text("course", encoding="utf-8")
+    (tmp_path / "data" / "ex1data1.csv").write_text("course", encoding="utf-8")
     tool = tmp_path / "linear-regression"
     (tool / "data").mkdir(parents=True)
     (tool / NOTEBOOK).write_text("notebook", encoding="utf-8")
-    (tool / "data" / "ex1data1.txt").write_text("tool", encoding="utf-8")
+    (tool / "data" / "ex1data1.csv").write_text("tool", encoding="utf-8")
+    namespace["__vsc_ipynb_file__"] = str(tool / NOTEBOOK)
     monkeypatch.chdir(tmp_path)
 
-    assert (find_data_dir() / "ex1data1.txt").read_text(encoding="utf-8") == "tool"
+    assert (find_data_dir() / "ex1data1.csv").read_text(encoding="utf-8") == "tool"
 
 
 def test_editor_notebook_path_uses_that_folder(tmp_path: Path, monkeypatch) -> None:
@@ -174,12 +178,12 @@ def test_editor_notebook_path_uses_that_folder(tmp_path: Path, monkeypatch) -> N
     decoy = tmp_path / "線性回歸"
     (decoy / "data").mkdir(parents=True)
     (decoy / NOTEBOOK).write_text("decoy", encoding="utf-8")
-    (decoy / "data" / "ex1data1.txt").write_text("decoy", encoding="utf-8")
+    (decoy / "data" / "ex1data1.csv").write_text("decoy", encoding="utf-8")
     opened = tmp_path / "opened"
     (opened / "data").mkdir(parents=True)
     (opened / NOTEBOOK).write_text("opened", encoding="utf-8")
-    (opened / "data" / "ex1data1.txt").write_text("opened", encoding="utf-8")
+    (opened / "data" / "ex1data1.csv").write_text("opened", encoding="utf-8")
     namespace["__vsc_ipynb_file__"] = str(opened / NOTEBOOK)
     monkeypatch.chdir(tmp_path)
 
-    assert (find_data_dir() / "ex1data1.txt").read_text(encoding="utf-8") == "opened"
+    assert (find_data_dir() / "ex1data1.csv").read_text(encoding="utf-8") == "opened"
