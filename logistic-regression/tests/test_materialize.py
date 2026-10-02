@@ -11,8 +11,11 @@ def _source(tmp_path: Path) -> Path:
     source = tmp_path / "source"
     (source / "data").mkdir(parents=True)
     (source / NOTEBOOK).write_text("notebook", encoding="utf-8")
+    (source / "brief.md").write_text("brief", encoding="utf-8")
+    (source / "mlb_wins.ipynb").write_text("wins", encoding="utf-8")
     (source / "data" / "ex2data1.csv").write_text("1,2,0\n", encoding="utf-8")
     (source / "data" / "ex2data2.csv").write_text("3,4,1\n", encoding="utf-8")
+    (source / "data" / "mlb_games.csv").write_text("games\n", encoding="utf-8")
     return source
 
 
@@ -34,8 +37,11 @@ def test_writes_experiment_folder_and_adds_packages(tmp_path: Path) -> None:
     folder = project / "邏輯回歸"
     assert result.status == "written"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "notebook"
+    assert (folder / "brief.md").read_text(encoding="utf-8") == "brief"
+    assert (folder / "mlb_wins.ipynb").read_text(encoding="utf-8") == "wins"
     assert (folder / "data" / "ex2data1.csv").read_text(encoding="utf-8") == "1,2,0\n"
     assert (folder / "data" / "ex2data2.csv").read_text(encoding="utf-8") == "3,4,1\n"
+    assert (folder / "data" / "mlb_games.csv").read_text(encoding="utf-8") == "games\n"
     assert calls == [
         ["uv", "add", "--directory", str(project), *PACKAGES],
     ]
@@ -74,6 +80,7 @@ def test_existing_folder_is_left_alone_while_packages_are_added(tmp_path: Path) 
 
     assert result.status == "skipped"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "student edit"
+    assert not (folder / "brief.md").exists()
     assert not (folder / "data" / "ex2data1.csv").exists()
     assert calls[0][1] == "add"
 

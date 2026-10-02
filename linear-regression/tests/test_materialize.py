@@ -11,8 +11,11 @@ def _source(tmp_path: Path) -> Path:
     source = tmp_path / "source"
     (source / "data").mkdir(parents=True)
     (source / NOTEBOOK).write_text("notebook", encoding="utf-8")
+    (source / "brief.md").write_text("brief", encoding="utf-8")
+    (source / "cabbage_pricing.ipynb").write_text("pricing", encoding="utf-8")
     (source / "data" / "ex1data1.csv").write_text("1,2\n", encoding="utf-8")
     (source / "data" / "ex1data2.csv").write_text("3,4,5\n", encoding="utf-8")
+    (source / "data" / "taipei2_cabbage.csv").write_text("cabbage\n", encoding="utf-8")
     return source
 
 
@@ -34,8 +37,11 @@ def test_writes_experiment_folder_and_adds_packages(tmp_path: Path) -> None:
     folder = project / "線性回歸"
     assert result.status == "written"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "notebook"
+    assert (folder / "brief.md").read_text(encoding="utf-8") == "brief"
+    assert (folder / "cabbage_pricing.ipynb").read_text(encoding="utf-8") == "pricing"
     assert (folder / "data" / "ex1data1.csv").read_text(encoding="utf-8") == "1,2\n"
     assert (folder / "data" / "ex1data2.csv").read_text(encoding="utf-8") == "3,4,5\n"
+    assert (folder / "data" / "taipei2_cabbage.csv").read_text(encoding="utf-8") == "cabbage\n"
     assert calls == [
         ["uv", "add", "--directory", str(project), *PACKAGES],
     ]
@@ -74,6 +80,7 @@ def test_existing_folder_is_left_alone_while_packages_are_added(tmp_path: Path) 
 
     assert result.status == "skipped"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "student edit"
+    assert not (folder / "brief.md").exists()
     assert not (folder / "data" / "ex1data1.csv").exists()
     assert calls[0][1] == "add"
 

@@ -8,7 +8,10 @@ from pathlib import Path
 
 FOLDER_NAME = "線性回歸"
 NOTEBOOK_NAME = "線性回歸.ipynb"
-DATA_FILES = ("ex1data1.csv", "ex1data2.csv")
+BRIEF_NAME = "brief.md"
+PRICING_NOTEBOOK_NAME = "cabbage_pricing.ipynb"
+ROOT_FILES = (NOTEBOOK_NAME, BRIEF_NAME, PRICING_NOTEBOOK_NAME)
+DATA_FILES = ("ex1data1.csv", "ex1data2.csv", "taipei2_cabbage.csv")
 PACKAGES = ("numpy", "matplotlib", "scikit-learn", "ipykernel")
 
 
@@ -54,7 +57,10 @@ def materialize(
             return MaterializeResult("failed", f"實驗夾已寫入，但相依沒裝上：{exc}")
         return MaterializeResult("failed", f"未覆寫實驗夾。相依沒裝上：{exc}")
     if wrote:
-        return MaterializeResult("written", "已寫入線性回歸實驗夾，並裝上相依。")
+        return MaterializeResult(
+            "written",
+            "已寫入線性回歸實驗夾，並裝上相依。實驗本做完後，打開同資料夾的 brief.md。",
+        )
     return MaterializeResult("skipped", "已有線性回歸實驗夾，未覆寫。已補上相依。")
 
 
@@ -83,10 +89,11 @@ def _place_experiment(root: Path, source_dir: Path) -> None:
         shutil.rmtree(staging)
     staging.mkdir()
     try:
-        notebook = source_dir / NOTEBOOK_NAME
-        if not notebook.is_file():
-            raise FileNotFoundError(notebook)
-        shutil.copy2(notebook, staging / NOTEBOOK_NAME)
+        for name in ROOT_FILES:
+            source = source_dir / name
+            if not source.is_file():
+                raise FileNotFoundError(source)
+            shutil.copy2(source, staging / name)
         data_dir = staging / "data"
         data_dir.mkdir()
         for name in DATA_FILES:
@@ -105,6 +112,6 @@ def _place_experiment(root: Path, source_dir: Path) -> None:
 
 
 def _is_complete(folder: Path) -> bool:
-    return (folder / NOTEBOOK_NAME).is_file() and all(
+    return all((folder / name).is_file() for name in ROOT_FILES) and all(
         (folder / "data" / name).is_file() for name in DATA_FILES
     )

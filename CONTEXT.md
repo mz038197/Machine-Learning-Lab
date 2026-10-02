@@ -9,7 +9,7 @@
 _Avoid_: lab, 講義, 作業
 
 **實驗夾**:
-學生專案裡、以該實驗命名的資料夾。「線性回歸」、「邏輯回歸」或「神經網路」。裡面是該實驗的實驗本；有實驗資料的，資料也在這裡。裝入一份不會改到另一份。
+學生專案裡、以該實驗命名的資料夾。「線性回歸」、「邏輯回歸」或「神經網路」。裡面是該實驗的實驗本；有實驗資料的，資料也在這裡。線性回歸與邏輯回歸的實驗夾另有委託與工作本。裝入一份不會改到另一份。
 _Avoid_: 把 notebook 和資料散在專案根目錄, lab, linear-regression, logistic-regression, neural-networks
 
 **線性回歸**:
@@ -33,9 +33,17 @@ _Avoid_: Machine-Learning-Lab, 模板, 上層專案
 _Avoid_: 只裝在老師的 Machine-Learning-Lab, 實驗夾自己的環境
 
 **實驗本**:
-一份實驗唯一的 notebook。線性回歸的住在 `linear-regression`，邏輯回歸的住在 `logistic-regression`，神經網路的住在 `neural-networks`。程式已經寫好。
+一份實驗唯一的 notebook。線性回歸的住在 `linear-regression`，邏輯回歸的住在 `logistic-regression`，神經網路的住在 `neural-networks`。程式已經寫好。工作本不是實驗本。
 _Avoid_: 在 lab/teacher 再留一本, 執行時才下載的另一本, 計分用的空白作業
 
+**委託**:
+實驗夾裡的 `brief.md`。實驗本做完後要接的案子，規格在這份檔案。線性回歸是高麗菜估價，邏輯回歸是例行賽贏球。
+_Avoid_: 挑戰.md, 第二本實驗本, 作業
+
+**工作本**:
+委託的程式放這裡。線性回歸是 `cabbage_pricing.ipynb`，邏輯回歸是 `mlb_wins.ipynb`。資料、前處理、訓練三格是空的，由學生請 AI 寫；最後一節只有學生寫。
+_Avoid_: 實驗本, 預寫好的訓練函式
+
 **實驗資料**:
-跟著該實驗本、要放進實驗夾的資料檔。線性回歸是 ex1data1.csv 與 ex1data2.csv；邏輯回歸是 ex2data1.csv 與 ex2data2.csv。神經網路沒有實驗資料。線性回歸在本專案根目錄 data/ 另有同名 txt 給舊講義用，兩邊各算各的。邏輯回歸的資料只跟這份實驗走。
+跟著該實驗本、要放進實驗夾的資料檔。線性回歸是 ex1data1.csv、ex1data2.csv，以及給委託用的 taipei2_cabbage.csv；邏輯回歸是 ex2data1.csv、ex2data2.csv，以及給委託用的 mlb_games.csv。神經網路沒有實驗資料。線性回歸在本專案根目錄 data/ 另有同名 txt 給舊講義用，兩邊各算各的。邏輯回歸的資料只跟這份實驗走。
 _Avoid_: 只留根目錄那一份, 執行時再下載, 兩邊自動同步
