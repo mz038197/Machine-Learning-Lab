@@ -142,7 +142,13 @@ def test_does_not_touch_an_existing_linear_regression_folder(tmp_path: Path) -> 
     assert (project / "邏輯回歸" / NOTEBOOK).is_file()
 
 
-def _load_find_data_dir():
+class _FakeNumpy:
+    @staticmethod
+    def loadtxt(path, delimiter=","):
+        return Path(path).read_text(encoding="utf-8")
+
+
+def _load_load_data():
     notebook = (
         Path(__file__).resolve().parents[1]
         / "src"
@@ -153,18 +159,21 @@ def _load_find_data_dir():
     document = json.loads(notebook.read_text(encoding="utf-8"))
     for cell in document["cells"]:
         source = "".join(cell.get("source", []))
-        if "def find_data_dir" in source:
-            start = source.index("def find_data_dir")
-            end = source.index("\nDATA_DIR")
-            namespace: dict[str, object] = {}
-            exec("from pathlib import Path\n\n" + source[start:end], namespace)
+        if "def loadData" in source:
+            start = source.index("def loadData")
+            end = source.index("\nrows = loadData")
+            namespace: dict[str, object] = {
+                "Path": Path,
+                "np": _FakeNumpy(),
+            }
+            exec(source[start:end], namespace)
             return namespace
-    raise AssertionError("notebook 裡沒有 find_data_dir")
+    raise AssertionError("notebook 裡沒有 loadData")
 
 
 def test_notebook_uses_data_beside_itself_not_a_root_decoy(tmp_path: Path, monkeypatch) -> None:
-    namespace = _load_find_data_dir()
-    find_data_dir = namespace["find_data_dir"]
+    namespace = _load_load_data()
+    loadData = namespace["loadData"]
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "ex2data1.csv").write_text("old", encoding="utf-8")
     experiment = tmp_path / "邏輯回歸"
@@ -174,13 +183,12 @@ def test_notebook_uses_data_beside_itself_not_a_root_decoy(tmp_path: Path, monke
     namespace["__vsc_ipynb_file__"] = str(experiment / NOTEBOOK)
     monkeypatch.chdir(tmp_path)
 
-    assert find_data_dir() == (experiment / "data").resolve()
-    assert (find_data_dir() / "ex2data1.csv").read_text(encoding="utf-8") == "student"
+    assert loadData("ex2data1.csv") == "student"
 
 
 def test_notebook_in_tool_directory_ignores_repo_root_data(tmp_path: Path, monkeypatch) -> None:
-    namespace = _load_find_data_dir()
-    find_data_dir = namespace["find_data_dir"]
+    namespace = _load_load_data()
+    loadData = namespace["loadData"]
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "ex2data1.csv").write_text("course", encoding="utf-8")
     tool = tmp_path / "logistic-regression"
@@ -190,12 +198,12 @@ def test_notebook_in_tool_directory_ignores_repo_root_data(tmp_path: Path, monke
     namespace["__vsc_ipynb_file__"] = str(tool / NOTEBOOK)
     monkeypatch.chdir(tmp_path)
 
-    assert (find_data_dir() / "ex2data1.csv").read_text(encoding="utf-8") == "tool"
+    assert loadData("ex2data1.csv") == "tool"
 
 
 def test_editor_notebook_path_uses_that_folder(tmp_path: Path, monkeypatch) -> None:
-    namespace = _load_find_data_dir()
-    find_data_dir = namespace["find_data_dir"]
+    namespace = _load_load_data()
+    loadData = namespace["loadData"]
     decoy = tmp_path / "邏輯回歸"
     (decoy / "data").mkdir(parents=True)
     (decoy / NOTEBOOK).write_text("decoy", encoding="utf-8")
@@ -207,4 +215,4 @@ def test_editor_notebook_path_uses_that_folder(tmp_path: Path, monkeypatch) -> N
     namespace["__vsc_ipynb_file__"] = str(opened / NOTEBOOK)
     monkeypatch.chdir(tmp_path)
 
-    assert (find_data_dir() / "ex2data1.csv").read_text(encoding="utf-8") == "opened"
+    assert loadData("ex2data1.csv") == "opened"
