@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "add-convolutional-neural-networks"
+version = "0.1.0"
+description = "把卷積神經網路實驗夾寫進學生專案，並裝上相依。"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+add-convolutional-neural-networks = "add_convolutional_neural_networks.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+add_convolutional_neural_networks = ["experiment/*", "experiment/data/*"]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
