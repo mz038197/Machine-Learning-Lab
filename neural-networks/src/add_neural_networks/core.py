@@ -8,6 +8,10 @@ from pathlib import Path
 
 FOLDER_NAME = "神經網路"
 NOTEBOOK_NAME = "神經網路.ipynb"
+BRIEF_NAME = "brief.md"
+GRADE_NOTEBOOK_NAME = "fitness_grade.ipynb"
+ROOT_FILES = (NOTEBOOK_NAME, BRIEF_NAME, GRADE_NOTEBOOK_NAME)
+DATA_FILES = ("body_performance.csv",)
 PACKAGES = ("numpy", "matplotlib", "tensorflow", "ipykernel")
 
 
@@ -53,7 +57,10 @@ def materialize(
             return MaterializeResult("failed", f"實驗夾已寫入，但相依沒裝上：{exc}")
         return MaterializeResult("failed", f"未覆寫實驗夾。相依沒裝上：{exc}")
     if wrote:
-        return MaterializeResult("written", "已寫入神經網路實驗夾，並裝上相依。")
+        return MaterializeResult(
+            "written",
+            "已寫入神經網路實驗夾，並裝上相依。實驗本做完後，打開同資料夾的 brief.md。",
+        )
     return MaterializeResult("skipped", "已有神經網路實驗夾，未覆寫。已補上相依。")
 
 
@@ -82,10 +89,18 @@ def _place_experiment(root: Path, source_dir: Path) -> None:
         shutil.rmtree(staging)
     staging.mkdir()
     try:
-        notebook = source_dir / NOTEBOOK_NAME
-        if not notebook.is_file():
-            raise FileNotFoundError(notebook)
-        shutil.copy2(notebook, staging / NOTEBOOK_NAME)
+        for name in ROOT_FILES:
+            source = source_dir / name
+            if not source.is_file():
+                raise FileNotFoundError(source)
+            shutil.copy2(source, staging / name)
+        data_dir = staging / "data"
+        data_dir.mkdir()
+        for name in DATA_FILES:
+            source = source_dir / "data" / name
+            if not source.is_file():
+                raise FileNotFoundError(source)
+            shutil.copy2(source, data_dir / name)
         if not _is_complete(staging):
             raise FileNotFoundError("實驗夾不完整")
         staging.rename(destination)
@@ -97,4 +112,6 @@ def _place_experiment(root: Path, source_dir: Path) -> None:
 
 
 def _is_complete(folder: Path) -> bool:
-    return (folder / NOTEBOOK_NAME).is_file()
+    return all((folder / name).is_file() for name in ROOT_FILES) and all(
+        (folder / "data" / name).is_file() for name in DATA_FILES
+    )

@@ -16,7 +16,7 @@ add-neural-networks = "add_neural_networks.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-add_neural_networks = ["experiment/*"]
+add_neural_networks = ["experiment/*", "experiment/data/*"]
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
