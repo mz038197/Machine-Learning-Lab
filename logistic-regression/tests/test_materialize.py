@@ -216,3 +216,13 @@ def test_editor_notebook_path_uses_that_folder(tmp_path: Path, monkeypatch) -> N
     monkeypatch.chdir(tmp_path)
 
     assert loadData("ex2data1.csv") == "opened"
+
+
+def test_notebook_outside_vscode_uses_working_directory(tmp_path: Path, monkeypatch) -> None:
+    namespace = _load_load_data()
+    loadData = namespace["loadData"]
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "ex2data1.csv").write_text("cwd", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    assert loadData("ex2data1.csv") == "cwd"
