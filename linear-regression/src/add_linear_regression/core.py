@@ -12,7 +12,7 @@ BRIEF_NAME = "brief.md"
 PRICING_NOTEBOOK_NAME = "cabbage_pricing.ipynb"
 ROOT_FILES = (NOTEBOOK_NAME, BRIEF_NAME, PRICING_NOTEBOOK_NAME)
 DATA_FILES = ("ex1data1.csv", "ex1data2.csv", "taipei2_cabbage.csv")
-PACKAGES = ("numpy", "matplotlib", "scikit-learn", "ipykernel")
+PACKAGES = ("numpy", "matplotlib", "scikit-learn", "ipykernel", "ipywidgets")
 
 
 @dataclass(frozen=True)

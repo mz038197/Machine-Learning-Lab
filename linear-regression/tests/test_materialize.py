@@ -4,7 +4,7 @@ from pathlib import Path
 from add_linear_regression.core import materialize
 
 NOTEBOOK = "線性回歸.ipynb"
-PACKAGES = ["numpy", "matplotlib", "scikit-learn", "ipykernel"]
+PACKAGES = ["numpy", "matplotlib", "scikit-learn", "ipykernel", "ipywidgets"]
 
 
 def _source(tmp_path: Path) -> Path:

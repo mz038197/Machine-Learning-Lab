@@ -1,6 +1,6 @@
 # 線性回歸實驗
 
-把實驗夾寫進學生專案的 `線性回歸/`，並在該專案根目錄裝上 numpy、matplotlib、scikit-learn、ipykernel。
+把實驗夾寫進學生專案的 `線性回歸/`，並在該專案根目錄裝上 numpy、matplotlib、scikit-learn、ipykernel、ipywidgets。
 
 實驗夾裡有實驗本 `線性回歸.ipynb`、委託 `brief.md`、工作本 `cabbage_pricing.ipynb`，以及 `data/` 的三份 csv。實驗本做完後從 `brief.md` 開始。
 
