@@ -8,8 +8,8 @@ from pathlib import Path
 
 FOLDER_NAME = "邏輯回歸"
 NOTEBOOK_NAME = "邏輯回歸.ipynb"
-BRIEF_NAME = "brief.md"
-WINS_NOTEBOOK_NAME = "mlb_wins.ipynb"
+BRIEF_NAME = "委託.html"
+WINS_NOTEBOOK_NAME = "例行賽贏球.ipynb"
 ROOT_FILES = (NOTEBOOK_NAME, BRIEF_NAME, WINS_NOTEBOOK_NAME)
 DATA_FILES = ("ex2data1.csv", "ex2data2.csv", "mlb_games.csv")
 PACKAGES = ("numpy", "matplotlib", "scikit-learn", "ipykernel")
@@ -59,7 +59,7 @@ def materialize(
     if wrote:
         return MaterializeResult(
             "written",
-            "已寫入邏輯回歸實驗夾，並裝上相依。實驗本做完後，打開同資料夾的 brief.md。",
+            "已寫入邏輯回歸實驗夾，並裝上相依。實驗本做完後，用瀏覽器打開同資料夾的 委託.html。",
         )
     return MaterializeResult("skipped", "已有邏輯回歸實驗夾，未覆寫。已補上相依。")
 

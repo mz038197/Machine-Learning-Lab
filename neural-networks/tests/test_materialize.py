@@ -10,8 +10,8 @@ def _source(tmp_path: Path) -> Path:
     source = tmp_path / "source"
     (source / "data").mkdir(parents=True)
     (source / NOTEBOOK).write_text("notebook", encoding="utf-8")
-    (source / "brief.md").write_text("brief", encoding="utf-8")
-    (source / "fitness_grade.ipynb").write_text("grade", encoding="utf-8")
+    (source / "委託.html").write_text("brief", encoding="utf-8")
+    (source / "體能等級.ipynb").write_text("grade", encoding="utf-8")
     (source / "data" / "body_performance.csv").write_text("body\n", encoding="utf-8")
     return source
 
@@ -34,8 +34,8 @@ def test_writes_experiment_folder_and_adds_packages(tmp_path: Path) -> None:
     folder = project / "神經網路"
     assert result.status == "written"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "notebook"
-    assert (folder / "brief.md").read_text(encoding="utf-8") == "brief"
-    assert (folder / "fitness_grade.ipynb").read_text(encoding="utf-8") == "grade"
+    assert (folder / "委託.html").read_text(encoding="utf-8") == "brief"
+    assert (folder / "體能等級.ipynb").read_text(encoding="utf-8") == "grade"
     assert (folder / "data" / "body_performance.csv").read_text(encoding="utf-8") == "body\n"
     assert calls == [
         ["uv", "add", "--directory", str(project), *PACKAGES],
@@ -75,7 +75,7 @@ def test_existing_folder_is_left_alone_while_packages_are_added(tmp_path: Path) 
 
     assert result.status == "skipped"
     assert (folder / NOTEBOOK).read_text(encoding="utf-8") == "student edit"
-    assert not (folder / "brief.md").exists()
+    assert not (folder / "委託.html").exists()
     assert not (folder / "data").exists()
     assert calls[0][1] == "add"
 
@@ -144,8 +144,8 @@ def test_does_not_touch_other_experiment_folders(tmp_path: Path) -> None:
 def test_packaged_source_has_the_brief_workbook_and_data() -> None:
     source = default_source_dir()
     assert (source / NOTEBOOK).is_file()
-    assert (source / "brief.md").is_file()
-    assert (source / "fitness_grade.ipynb").is_file()
+    assert (source / "委託.html").is_file()
+    assert (source / "體能等級.ipynb").is_file()
     assert (source / "data" / "body_performance.csv").is_file()
 
 
