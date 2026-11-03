@@ -11,4 +11,4 @@ def test_brief_embeds_the_same_data_as_the_csv() -> None:
     match = re.search(r'<script id="csv" type="text/plain">\n(.*?)\n</script>', html, re.S)
     assert match, "委託.html 裡找不到嵌入的資料"
     csv = (source / "data" / DATA).read_text(encoding="utf-8").strip()
-    assert match.group(1) == csv, f"委託.html 嵌入的資料跟 data/{DATA} 不一致，請重新產生"
+    assert match.group(1) == csv, f"委託.html 嵌入的資料跟 data/{DATA} 不一致，請重跑 uv run python tools/build_briefs.py"

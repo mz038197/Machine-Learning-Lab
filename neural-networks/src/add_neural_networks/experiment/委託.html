@@ -13751,8 +13751,12 @@
     return x < y ? -1 : x > y ? 1 : 0;
   }
 
+  // 顯示順序：要預測的欄放最後，其他照 CSV 的順序。
+  var order = header.map(function (h, i) { return i; })
+    .filter(function (i) { return i !== CFG.target; }).concat([CFG.target]);
+
   var head = document.getElementById("head");
-  header.forEach(function (h, i) {
+  order.forEach(function (i) {
     var th = document.createElement("th");
     th.dataset.i = i;
     if (i === CFG.target) th.className = "t";
@@ -13795,7 +13799,8 @@
     var pages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
     page = Math.min(Math.max(page, 0), pages - 1);
 
-    Array.prototype.forEach.call(head.children, function (th, i) {
+    Array.prototype.forEach.call(head.children, function (th) {
+      var i = Number(th.dataset.i);
       th.textContent = header[i] + (i === sortCol ? (sortDir > 0 ? " ▲" : " ▼") : "");
     });
 
@@ -13803,7 +13808,8 @@
     body.textContent = "";
     rows.slice(page * PER_PAGE, (page + 1) * PER_PAGE).forEach(function (r) {
       var tr = document.createElement("tr");
-      r.forEach(function (v, i) {
+      order.forEach(function (i) {
+        var v = r[i];
         var td = document.createElement("td");
         if (v === "") { td.textContent = "空白"; td.className = "blank"; }
         else { td.textContent = v; if (i === CFG.target) td.className = "t"; }
