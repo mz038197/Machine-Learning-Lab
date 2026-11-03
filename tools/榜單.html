@@ -278,6 +278,13 @@ function 排出榜單(表格, 方向) {
 <script>
 const 刷新秒數 = 10;
 const 走路毫秒 = 1500;
+const 靠近比例 = 0.12; // 每格畫面往目標靠近多少
+const 隊距 = 16; // 並排的組之間留多寬
+const 一排高 = 108; // 小人從旗子頂到名字底大約多高
+const 最小縮放 = 0.6;
+const 山頂留寬 = 220; // 山頂很窄，同分並排時至少給這麼寬（半寬），不然會縮到看不見
+const 山中心x = 600;
+const 營地左 = 175, 營地可用寬 = 1150 - 營地左;
 const 色票 = ["#e0453a", "#2f7fd8", "#f2a51a", "#2f9e5b", "#8b4fd1", "#e2669f", "#16a3a3", "#7a5230", "#5b6b7a", "#a3c428", "#d9622b", "#3b4bc8"];
 const SVG = "http://www.w3.org/2000/svg";
 const $ = (id) => document.getElementById(id);
@@ -424,7 +431,14 @@ function 造隊伍(g) {
   問號.textContent = "?";
   const 超車 = 元素("text", { class: "超車", x: 0, y: -100, "text-anchor": "middle", "font-size": 22, "font-weight": 900, fill: "#e0453a", stroke: "#fff", "stroke-width": 5, "paint-order": "stroke" }, 身);
   超車.textContent = "↑ 超車！";
-  const 隊 = { 根, 身, 人們, 旗, 色, 名單: null, 現在s: 0, 起s: 0, 目標s: 0, 起時: 0, 在營地: true, 營地點: { x: 0, y: 0 }, 偏移: 0, 面向: 1 };
+  const 隊 = {
+    根, 身, 人們, 旗, 色, 名單: null, 人數: 1,
+    // 沿步道走：現在s 從 起s 走到 目標s
+    現在s: 0, 起s: 0, 目標s: 0, 起時: 0,
+    在營地: true, 營地點: { x: 0, y: 0 },
+    偏移: 0, 縮放: 1, // 排開擠在一起的組時，往旁邊挪多少、縮多小
+    顯示: null, 面向: 1, // 畫面上實際的位置，每格往目標靠近一點
+  };
   隊伍.set(g.組別, 隊);
   return 隊;
 }
@@ -434,6 +448,7 @@ function 換組員(隊, 組員) {
   if (隊.名單 !== 名單) {
     隊.名單 = 名單;
     const 人數 = Math.max(1, 組員.length);
+    隊.人數 = 人數;
     隊.人們.replaceChildren();
     const 間距 = 40, 起 = -((人數 - 1) * 間距) / 2;
     if (人數 > 1) {
@@ -492,32 +507,38 @@ function 畫(榜) {
   const 還在 = new Set(榜.組.map((g) => g.組別));
   for (const [組別, 隊] of 隊伍) if (!還在.has(組別)) { 隊.根.remove(); 隊伍.delete(組別); }
 
-  const 營地隊 = 榜.組.filter((g) => g.名次 === null);
-  營地隊.forEach((g, i) => {
-    const 隊 = 隊伍.get(g.組別) || 造隊伍(g);
-    隊.在營地 = true;
-    隊.營地點 = { x: 220 + i * 100, y: 828 };
-  });
+  for (const g of 榜.組) 換組員(隊伍.get(g.組別) || 造隊伍(g), g.組員);
 
-  // 太靠近的隊往旁邊挪，不要疊在一起
-  const 已放 = [];
+  // 營地：一排排開，放不下就整排縮小
+  const 營地隊 = 榜.組.filter((g) => g.名次 === null).map((g) => 隊伍.get(g.組別));
+  const 營地寬 = 營地隊.reduce((和, 隊) => 和 + 隊寬(隊) + 隊距, -隊距);
+  const 營地縮放 = Math.min(1, 營地可用寬 / Math.max(1, 營地寬));
+  let 營地x = 營地左;
+  for (const 隊 of 營地隊) {
+    const 寬 = 隊寬(隊) * 營地縮放;
+    隊.在營地 = true;
+    隊.營地點 = { x: 營地x + 寬 / 2, y: 836 };
+    隊.縮放 = 營地縮放;
+    隊.偏移 = 0;
+    營地x += 寬 + 隊距 * 營地縮放;
+  }
+
+  // 步道上
+  const 上山隊 = [];
   for (const g of 榜.組.filter((g) => g.名次 !== null)) {
-    const 隊 = 隊伍.get(g.組別) || 造隊伍(g);
+    const 隊 = 隊伍.get(g.組別);
     const s = g.高度 * 步道長;
     const 剛出發 = 隊.在營地;
     if (剛出發) { 隊.在營地 = false; 隊.現在s = 0; }
     if (剛出發 || Math.abs(s - 隊.目標s) > 0.5) {
       隊.起s = 隊.現在s; 隊.目標s = s; 隊.起時 = 現在;
     }
-    const 點 = 步道.getPointAtLength(s);
-    const 擠 = 已放.filter((p) => Math.hypot(p.x - 點.x, p.y - 點.y) < 90).length;
-    隊.偏移 = 擠 === 0 ? 0 : (擠 % 2 ? 1 : -1) * Math.ceil(擠 / 2) * 100;
-    已放.push({ x: 點.x + 隊.偏移, y: 點.y });
+    上山隊.push({ 隊, 點: 步道.getPointAtLength(s) });
   }
+  排開擠在一起的(上山隊);
 
   for (const g of 榜.組) {
     const 隊 = 隊伍.get(g.組別);
-    換組員(隊, g.組員);
     隊.根.classList.toggle("第一", g.名次 === 1);
     隊.根.classList.toggle("讀不懂", g.狀態 === "讀不懂");
   }
@@ -541,6 +562,48 @@ function 畫(榜) {
   第一次 = false;
 }
 
+// 一組大約多寬：人和人隔 40，加上兩邊的名字
+function 隊寬(隊) {
+  return (隊.人數 - 1) * 40 + 56;
+}
+
+// 主峰在 (600,100)，山腳 y=760 時左右各寬 560
+function 山半寬(y) {
+  return Math.max(0, ((y - 100) / 660) * 560);
+}
+
+// 步道一路往上，高度接近就是 y 接近。y 相差不到 一排高 的組串成一排，
+// 在那個高度左右排開；一排比山還寬就整排縮小。
+function 排開擠在一起的(上山隊) {
+  上山隊.sort((a, b) => a.點.y - b.點.y);
+  const 排們 = [];
+  for (const 一個 of 上山隊) {
+    const 上一排 = 排們[排們.length - 1];
+    if (上一排 && 一個.點.y - 上一排[上一排.length - 1].點.y < 一排高) 上一排.push(一個);
+    else 排們.push([一個]);
+  }
+  for (const 排 of 排們) {
+    if (排.length === 1) { 排[0].隊.偏移 = 0; 排[0].隊.縮放 = 1; continue; }
+    排.sort((a, b) => a.點.x - b.點.x);
+    const 寬 = 排.reduce((和, { 隊 }) => 和 + 隊寬(隊) + 隊距, -隊距);
+    const 平均y = 排.reduce((和, { 點 }) => 和 + 點.y, 0) / 排.length;
+    const 半寬 = Math.max(山頂留寬, 山半寬(平均y) + 40);
+    const 縮放 = Math.max(最小縮放, Math.min(1, (半寬 * 2) / 寬));
+    const 實寬 = 寬 * 縮放;
+    // 中心盡量對著原本的位置，但整排不要跑出山外
+    let 中心 = 排.reduce((和, { 點 }) => 和 + 點.x, 0) / 排.length;
+    const 左界 = 山中心x - 半寬 + 實寬 / 2, 右界 = 山中心x + 半寬 - 實寬 / 2;
+    中心 = 左界 <= 右界 ? Math.min(右界, Math.max(左界, 中心)) : 山中心x;
+    let x = 中心 - 實寬 / 2;
+    for (const { 隊, 點 } of 排) {
+      const 這寬 = 隊寬(隊) * 縮放;
+      隊.偏移 = x + 這寬 / 2 - 點.x;
+      隊.縮放 = 縮放;
+      x += 這寬 + 隊距 * 縮放;
+    }
+  }
+}
+
 function 跳一下(隊) {
   隊.根.classList.remove("跳");
   void 隊.根.getBBox();
@@ -558,22 +621,28 @@ function 顯示數字(x) {
 // 沿著步道走：每一格畫面把各隊往目標推一點
 function 動畫(現在) {
   for (const 隊 of 隊伍.values()) {
-    let x, y, 走 = false;
+    let 目標;
     if (隊.在營地) {
-      ({ x, y } = 隊.營地點);
+      目標 = { ...隊.營地點, k: 隊.縮放 };
     } else {
       const t = Math.min(1, (現在 - 隊.起時) / 走路毫秒);
       const 緩 = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
-      const 前s = 隊.現在s;
       隊.現在s = 隊.起s + (隊.目標s - 隊.起s) * 緩;
-      走 = t < 1 && Math.abs(隊.目標s - 隊.起s) > 1;
       const 點 = 步道.getPointAtLength(隊.現在s);
-      const 前點 = 步道.getPointAtLength(前s);
-      if (Math.abs(點.x - 前點.x) > 0.3) 隊.面向 = 點.x > 前點.x ? 1 : -1;
-      x = 點.x + 隊.偏移; y = 點.y;
+      目標 = { x: 點.x + 隊.偏移, y: 點.y, k: 隊.縮放 };
     }
+    // 不直接跳到目標，每格靠近一點：換位置、縮放、回營地都會滑過去
+    const 舊 = 隊.顯示 || 目標;
+    const 新 = {
+      x: 舊.x + (目標.x - 舊.x) * 靠近比例,
+      y: 舊.y + (目標.y - 舊.y) * 靠近比例,
+      k: 舊.k + (目標.k - 舊.k) * 靠近比例,
+    };
+    if (Math.abs(新.x - 舊.x) > 0.3) 隊.面向 = 新.x > 舊.x ? 1 : -1;
+    隊.顯示 = 新;
+    const 走 = Math.hypot(目標.x - 新.x, 目標.y - 新.y) > 2 || Math.hypot(新.x - 舊.x, 新.y - 舊.y) > 0.5;
     隊.根.classList.toggle("走", 走);
-    隊.根.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    隊.根.setAttribute("transform", `translate(${新.x.toFixed(1)} ${新.y.toFixed(1)}) scale(${新.k.toFixed(3)})`);
     隊.根.classList.toggle("朝左", 隊.面向 < 0);
   }
   requestAnimationFrame(動畫);
