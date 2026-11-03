@@ -1,122 +1,231 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="白天">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>榜單</title>
+<meta name="description" content="老師投影用的榜單，把各組畫成在山上爬的小人">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Noto+Sans+TC:wght@500;800&display=swap" rel="stylesheet">
+<script>{ const 風格 = new URLSearchParams(location.search).get("風格"); if (["白天", "夜晚", "日出"].includes(風格)) document.documentElement.dataset.theme = 風格; }</script>
 <!--
   老師投影用的榜單。讀一張成績表（Google 試算表），把各組畫成在山上爬的小人。
-  直接用瀏覽器打開這個檔案就能用，按右上角 ⚙️ 貼上成績表的連結。
+  直接用瀏覽器打開這個檔案就能用，按右上角的齒輪貼上成績表的連結，也可以選風格（白天、夜晚、日出）。
+  山和小人用 three.js 畫成立體的（要上網載入）；電腦跑不了 WebGL 時會自動改畫平面的山。
   成績表：第一欄組別，最後一欄成績，中間都是組員。要開「知道連結的人可以檢視」。
   邏輯的測試：node --test "tools/tests/*.test.mjs"
 -->
 <style>
-  :root {
-    --天空上: #8fd0f5;
-    --天空下: #e6f6ff;
-    --字: #1d2b36;
-    --淡字: #5d6f7c;
-    --面板: rgba(255, 255, 255, 0.86);
-    --線: rgba(29, 43, 54, 0.12);
-    --紅: #e0453a;
-    --綠: #2f9e5b;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
-  body {
-    background: linear-gradient(var(--天空上), var(--天空下) 70%);
-    color: var(--字);
-    font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
-    overflow: hidden;
-  }
-  .版面 {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 440px);
-    height: 100vh;
-  }
-  .山區 { position: relative; min-width: 0; }
-  .山區 svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .抬頭 {
-    position: absolute; top: 18px; left: 24px; z-index: 2;
-    pointer-events: none;
-  }
-  .抬頭 h1 { margin: 0; font-size: clamp(26px, 3vw, 46px); letter-spacing: 0.04em; }
-  .抬頭 p { margin: 4px 0 0; font-size: clamp(15px, 1.4vw, 22px); color: var(--淡字); }
+/* Hallmark · v2.0.0 · redesign: restyle · scope: app · theme: piste (dealt 1/3, seed classroom-projector-leaderboard-where-f831·a0bc8ff8·2026-11-03·r0) · styles: 白天 snow, 夜晚 night-piste, 日出 sunrise (blue-run dropped after the prototype) · scene and climbers in three.js, names stay SVG */
+/* critique: the mountain and the climbers are the screen; the panel must read from the back row, so rank and score are set in the condensed face, large */
+:root {
+  --font-display: "Barlow Condensed", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-body: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --rule-hair: 1px; --rule-bar: 3px;
+  --dur-micro: 120ms; --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --color-focus: oklch(58% 0.22 28);
+  --color-ok: oklch(62% 0.16 150);
+  --color-bad: oklch(56% 0.21 28);
+  --scrim: oklch(16% 0.012 260 / 0.55);
+  --shadow-dialog: 0 20px 60px oklch(16% 0.012 260 / 0.3);
+  --skin: oklch(87% 0.05 60); --legs: oklch(28% 0.015 250); --pack: oklch(42% 0.07 55);
+  --pole: oklch(34% 0.04 60); --rope: oklch(72% 0.08 75);
+  --crown: oklch(84% 0.16 88); --crown-edge: oklch(48% 0.1 70);
+}
+/* 白天：白紙黑字，鈷藍只給名次 */
+:root, :root[data-theme="白天"] {
+  --paper: oklch(98.5% 0.005 260); --paper-2: oklch(95% 0.008 260);
+  --ink: oklch(16% 0.012 260); --muted: oklch(40% 0.016 260); --rule: oklch(84% 0.01 260);
+  --accent: oklch(50% 0.25 265); --accent-deep: oklch(40% 0.2 266); --accent-ink: oklch(98.5% 0.004 260);
+  --alert: oklch(52% 0.21 28);
+  --panel: var(--paper); --panel-ink: var(--ink); --panel-muted: var(--muted); --panel-rule: var(--rule);
+  --panel-bar: var(--ink); --rank-ink: var(--accent); --score-ink: var(--ink); --panel-alert: var(--alert);
+  --sky: oklch(88% 0.05 235); --sun: oklch(96% 0.05 95); --glow: oklch(98% 0.04 95); --cloud: var(--paper);
+  --mount-top: oklch(56% 0.05 250); --mount-bottom: oklch(36% 0.05 250);
+  --far-top: oklch(80% 0.03 240); --far-bottom: oklch(71% 0.03 240);
+  --snowcap: var(--paper); --summit-flag: var(--alert); --trail: var(--paper);
+  --ground: var(--paper-2); --ground-edge: var(--ink);
+  --tent: var(--accent); --tent-door: var(--ink); --camp-ink: var(--ink);
+  --name-ink: var(--ink); --name-halo: var(--paper);
+}
+/* 夜晚：深色底，成績最大，沒成績的縮成一排小標籤 */
+:root[data-theme="夜晚"] {
+  --paper: oklch(14% 0.01 260); --paper-2: oklch(19% 0.014 260);
+  --ink: oklch(97% 0.005 260); --muted: oklch(76% 0.015 260); --rule: oklch(32% 0.015 260);
+  --accent: oklch(68% 0.18 265); --accent-deep: oklch(76% 0.14 265); --accent-ink: oklch(14% 0.01 260);
+  --alert: oklch(70% 0.18 28);
+  --panel: var(--paper); --panel-ink: var(--ink); --panel-muted: var(--muted); --panel-rule: var(--rule);
+  --panel-bar: var(--ink); --rank-ink: var(--muted); --score-ink: var(--accent); --panel-alert: var(--alert);
+  --sky: oklch(21% 0.035 262); --sun: oklch(93% 0.02 95); --glow: oklch(90% 0.03 240); --cloud: oklch(36% 0.025 260);
+  --mount-top: oklch(46% 0.04 258); --mount-bottom: oklch(28% 0.03 258);
+  --far-top: oklch(32% 0.03 260); --far-bottom: oklch(26% 0.025 260);
+  --snowcap: oklch(94% 0.01 260); --trail: oklch(92% 0.01 260);
+  --ground: oklch(24% 0.015 260); --ground-edge: var(--ink);
+  --tent: var(--accent); --tent-door: var(--paper); --camp-ink: var(--ink);
+  --name-ink: var(--ink); --name-halo: var(--paper);
+}
+/* 日出：面板和 A 一樣，山被早上的太陽照成暖色 */
+:root[data-theme="日出"] { --sky: oklch(90% 0.05 75); }
 
-  .面板 {
-    background: var(--面板);
-    backdrop-filter: blur(6px);
-    border-left: 1px solid var(--線);
-    display: flex; flex-direction: column;
-    padding: 18px 18px 12px;
-    min-height: 0;
-  }
-  .面板頭 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .面板頭 h2 { margin: 0; font-size: 22px; }
-  .齒輪 {
-    border: 0; background: transparent; font-size: 26px; cursor: pointer;
-    border-radius: 10px; padding: 2px 8px;
-  }
-  .齒輪:hover { background: var(--線); }
-  .名次表 { list-style: none; margin: 12px 0 0; padding: 0; overflow-y: auto; flex: 1; }
-  .名次表 li {
-    display: grid; grid-template-columns: 2.2em 1fr auto; align-items: center; gap: 10px;
-    padding: 5px 6px; border-bottom: 1px solid var(--線);
-    font-size: clamp(15px, 1.15vw, 20px); line-height: 1.25;
-  }
-  .名次表 .名次 { font-weight: 800; font-size: 1.15em; text-align: center; }
-  .名次表 .誰 { min-width: 0; }
-  .名次表 .組號 { font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
-  .名次表 .點 { width: 0.8em; height: 0.8em; border-radius: 50%; display: inline-block; }
-  .名次表 .組員 { color: var(--淡字); font-size: 0.82em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .名次表 .成績 { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; }
-  .名次表 li.沒名次 { opacity: 0.55; }
-  .名次表 li.讀不懂 .成績 { color: var(--紅); font-weight: 600; font-size: 0.85em; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .狀態列 { display: flex; align-items: center; gap: 8px; color: var(--淡字); font-size: 14px; padding-top: 10px; }
-  .燈 { width: 10px; height: 10px; border-radius: 50%; background: var(--綠); flex: none; }
-  .燈.壞 { background: var(--紅); }
-  .提示 { color: var(--紅); font-size: 13px; }
+/* 立體版（three.js）的顏色：每個風格一組 */
+:root, :root[data-theme="白天"] {
+  --d-sky: linear-gradient(oklch(74% 0.09 245), oklch(92% 0.035 230));
+  --d-snow: oklch(97% 0.008 250); --d-snow-shade: oklch(87% 0.03 250);
+  --d-rock: oklch(56% 0.04 250); --d-rock-dark: oklch(43% 0.045 252);
+  --d-ground: oklch(95% 0.012 240); --d-far: oklch(80% 0.035 245); --d-far-cap: oklch(96% 0.01 245);
+  --d-pine: oklch(42% 0.07 165); --d-trunk: oklch(38% 0.05 55); --d-stone: oklch(62% 0.02 250);
+  --d-tent: var(--accent); --d-tent-door: var(--ink); --d-sign: oklch(50% 0.07 60);
+  --d-cloud: oklch(99% 0.005 260); --d-flake: oklch(99% 0.005 260); --d-star: oklch(98% 0.02 90);
+  --d-sun: oklch(96% 0.07 95); --d-sunlight: oklch(99% 0.02 90);
+  --d-hemi-sky: oklch(90% 0.04 240); --d-hemi-ground: oklch(68% 0.03 250); --d-fire: oklch(76% 0.17 58);
+  --d-trail: var(--accent);
+}
+:root[data-theme="夜晚"] {
+  --d-sky: linear-gradient(oklch(13% 0.03 265), oklch(27% 0.045 262));
+  --d-snow: oklch(82% 0.03 255); --d-snow-shade: oklch(66% 0.04 258);
+  --d-rock: oklch(36% 0.03 258); --d-rock-dark: oklch(27% 0.03 260);
+  --d-ground: oklch(64% 0.03 255); --d-far: oklch(30% 0.03 260); --d-far-cap: oklch(58% 0.03 258);
+  --d-pine: oklch(28% 0.04 200); --d-trunk: oklch(26% 0.03 55); --d-stone: oklch(42% 0.02 258);
+  --d-tent: var(--accent); --d-tent-door: oklch(82% 0.14 78); --d-sign: oklch(40% 0.05 60);
+  --d-cloud: oklch(36% 0.025 260); --d-flake: oklch(94% 0.01 260);
+  --d-sun: oklch(95% 0.02 95); --d-sunlight: oklch(86% 0.04 250);
+  --d-hemi-sky: oklch(50% 0.06 262); --d-hemi-ground: oklch(20% 0.02 260);
+  --d-trail: var(--accent);
+}
+:root[data-theme="日出"] {
+  --d-sky: linear-gradient(oklch(78% 0.08 55), oklch(93% 0.05 85));
+  --d-snow: oklch(96% 0.025 70); --d-snow-shade: oklch(85% 0.055 50);
+  --d-rock: oklch(53% 0.05 40); --d-rock-dark: oklch(41% 0.05 35);
+  --d-ground: oklch(94% 0.025 70); --d-far: oklch(77% 0.06 50); --d-far-cap: oklch(94% 0.03 70);
+  --d-pine: oklch(40% 0.06 150); --d-stone: oklch(60% 0.03 50);
+  --d-sun: oklch(89% 0.13 78); --d-sunlight: oklch(90% 0.08 65);
+  --d-hemi-sky: oklch(88% 0.05 70); --d-hemi-ground: oklch(58% 0.05 40);
+  --d-cloud: oklch(96% 0.03 70);
+}
+:root {
+  --d-boot: oklch(32% 0.04 50); --d-glove: oklch(24% 0.01 260); --d-eye: oklch(18% 0.01 260);
+  --d-cheek: oklch(76% 0.1 20); --d-scarf: oklch(97% 0.005 260); --d-metal: oklch(72% 0.01 260);
+  --d-flag-ink: oklch(99% 0.005 260); --d-shadow: oklch(10% 0.005 260);
+}
 
-  /* 設定 */
-  dialog {
-    border: 0; border-radius: 16px; padding: 24px; width: min(560px, calc(100vw - 32px));
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); color: var(--字);
-  }
-  dialog::backdrop { background: rgba(20, 30, 40, 0.45); }
-  dialog h2 { margin: 0 0 14px; }
-  dialog label { display: block; font-weight: 700; margin: 14px 0 6px; }
-  dialog input, dialog select {
-    width: 100%; font: inherit; padding: 9px 11px; border-radius: 10px; border: 1px solid #c4ced6;
-  }
-  dialog .說明 { color: var(--淡字); font-size: 14px; margin: 6px 0 0; line-height: 1.6; }
-  dialog .錯誤 { color: var(--紅); min-height: 1.4em; margin: 10px 0 0; }
-  dialog .按鈕列 { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
-  dialog button { font: inherit; padding: 8px 18px; border-radius: 10px; border: 1px solid #c4ced6; background: white; cursor: pointer; }
-  dialog button.主要 { background: var(--字); color: white; border-color: var(--字); }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow-x: clip; overflow-y: clip; }
+body { background: var(--panel); color: var(--ink); font-family: var(--font-body); }
+.版面 { display: grid; grid-template-columns: minmax(0, 1fr) clamp(380px, 33vw, 640px); height: 100vh; }
+/* 標題在上面佔自己的一塊，山畫在剩下的空間，兩個不會疊在一起 */
+.山區 { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--sky); }
+.山區 svg { flex: 1; min-height: 0; width: 100%; display: block; }
+.山區 { position: relative; }
+.山區 svg, .抬頭 { position: relative; z-index: 1; }
+.立體畫布 { display: none; position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+:root.有3D .立體畫布 { display: block; }
+/* 3D 開起來之後，SVG 只留名字、問號和「超車」；步道用 visibility 藏，程式還要量它的長度 */
+:root.有3D .山區 { background: var(--d-sky); }
+:root.有3D #山 > :not(#隊伍):not(#步道):not(defs) { display: none; }
+:root.有3D #步道 { visibility: hidden; }
+:root.有3D #隊伍 .人, :root.有3D .人們 > path, :root.有3D .身 > g:not(.人們) { display: none; }
+.抬頭 { padding: var(--space-4) var(--space-6) 0; pointer-events: none; }
+.抬頭 h1 { margin: 0; font: 800 clamp(32px, 3vw, 56px)/1.05 var(--font-display); color: var(--ink); text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
+.抬頭 p { margin: var(--space-1) 0 0; font-size: clamp(18px, 1.3vw, 24px); font-weight: 500; color: var(--muted); }
 
-  /* 山上的小人 */
-  .隊 .身 { transition: transform 0.3s; }
-  .隊.走 .人 { animation: 走路 0.36s ease-in-out infinite alternate; }
-  .隊.走 .人:nth-child(2n) { animation-delay: 0.18s; }
-  @keyframes 走路 { from { transform: translateY(0); } to { transform: translateY(-4px); } }
-  .隊.跳 .身 { animation: 跳 0.5s ease-out 3; }
-  @keyframes 跳 { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-22px); } }
-  .超車 { opacity: 0; transition: opacity 0.3s; }
-  .隊.跳 .超車 { opacity: 1; }
-  .隊.朝左 .臉 { transform: scaleX(-1); }
-  .皇冠 { display: none; }
-  .隊.第一 .皇冠 { display: inline; }
-  .問號 { display: none; }
-  .隊.讀不懂 .問號 { display: inline; animation: 晃 1.2s ease-in-out infinite; }
-  @keyframes 晃 { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
-  .山頂光 { animation: 光 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
-  @keyframes 光 { 0%, 100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 0.8; transform: scale(1.1); } }
-  .雲 { animation: 飄 60s linear infinite; }
-  .雲.慢 { animation-duration: 90s; }
-  @keyframes 飄 { from { transform: translateX(-300px); } to { transform: translateX(1500px); } }
-  @media (prefers-reduced-motion: reduce) {
-    .雲, .山頂光, .隊.走 .人, .隊.跳 .身, .隊.讀不懂 .問號 { animation: none; }
-  }
+.面板 { background: var(--panel); color: var(--panel-ink); border-left: var(--rule-bar) solid var(--panel-bar); display: flex; flex-direction: column; padding: var(--space-5) var(--space-5) var(--space-4); min-height: 0; }
+.面板頭 { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); border-bottom: var(--rule-bar) solid var(--panel-ink); padding-bottom: var(--space-2); }
+.面板頭 h2 { margin: 0; font: 800 clamp(30px, 2.4vw, 44px)/1 var(--font-display); }
+.齒輪 { width: 56px; height: 56px; display: grid; place-items: center; border: 0; border-radius: 0; background: transparent; color: var(--panel-ink); cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out); }
+.齒輪 svg { width: 32px; height: 32px; }
+.齒輪:hover { background: color-mix(in oklab, var(--panel-ink) 12%, transparent); }
+.齒輪:active { background: color-mix(in oklab, var(--panel-ink) 24%, transparent); }
+:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+.名次表 { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.名次表 li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-1); border-bottom: var(--rule-hair) solid var(--panel-rule); font-size: clamp(22px, 1.7vw, 32px); line-height: 1.2; }
+.名次表 .名次 { font: 800 1.5em/1 var(--font-display); color: var(--rank-ink); text-align: center; font-variant-numeric: tabular-nums; }
+.名次表 .誰 { min-width: 0; }
+.名次表 .組號 { font-weight: 800; display: inline-flex; align-items: center; gap: var(--space-2); }
+.名次表 .點 { width: 0.7em; height: 0.7em; display: inline-block; }
+.名次表 .組員 { color: var(--panel-muted); font-size: 0.72em; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.名次表 .成績 { font: 800 1.35em/1 var(--font-display); font-variant-numeric: tabular-nums; text-align: right; color: var(--score-ink); }
+.名次表 li.沒名次 { opacity: 0.6; }
+.名次表 li.讀不懂 .成績 { color: var(--panel-alert); font: 700 0.8em/1.2 var(--font-body); max-width: 8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.狀態列 { display: flex; align-items: center; gap: var(--space-2); color: var(--panel-muted); font-size: 18px; padding-top: var(--space-3); }
+.燈 { width: 12px; height: 12px; background: var(--color-ok); flex: none; }
+.燈.壞 { background: var(--color-bad); }
+.提示 { color: var(--panel-alert); font-size: 18px; }
+
+/* 夜晚：成績在上、組在下；沒成績的變成一排小標籤 */
+:root[data-theme="夜晚"] .名次表 { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--space-2); }
+:root[data-theme="夜晚"] .名次表 li { flex: 1 0 100%; grid-template-columns: 1.4em minmax(0, 1fr); grid-template-areas: "名 分" "名 誰"; row-gap: 0; padding-block: var(--space-2); }
+:root[data-theme="夜晚"] .名次表 .名次 { grid-area: 名; align-self: start; font-size: 1.3em; }
+:root[data-theme="夜晚"] .名次表 .成績 { grid-area: 分; text-align: left; font-size: 1.7em; }
+:root[data-theme="夜晚"] .名次表 .誰 { grid-area: 誰; display: flex; gap: var(--space-3); align-items: baseline; min-width: 0; }
+:root[data-theme="夜晚"] .名次表 li.沒名次 { flex: 0 0 auto; display: inline-flex; gap: var(--space-2); font-size: 20px; padding: var(--space-1) var(--space-3); border: var(--rule-hair) solid var(--panel-rule); opacity: 0.8; }
+:root[data-theme="夜晚"] .名次表 li.沒名次 .名次, :root[data-theme="夜晚"] .名次表 li.沒名次 .組員 { display: none; }
+:root[data-theme="夜晚"] .名次表 li.沒名次 .成績 { font: 500 1em/1.2 var(--font-body); color: var(--panel-muted); }
+
+/* 設定 */
+dialog { border: var(--rule-bar) solid var(--ink); border-radius: 0; padding: var(--space-6); width: min(640px, calc(100% - 32px)); box-shadow: var(--shadow-dialog); color: var(--ink); background: var(--paper); font-size: 20px; }
+dialog::backdrop { background: var(--scrim); }
+dialog h2 { margin: 0 0 var(--space-3); font: 800 36px/1 var(--font-display); }
+dialog label { display: block; font-weight: 800; margin: var(--space-4) 0 var(--space-2); }
+dialog input, dialog select { width: 100%; min-height: 52px; font: inherit; padding: var(--space-2) var(--space-3); border-radius: 0; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); transition: border-color var(--dur-micro) var(--ease-out); }
+dialog input:hover, dialog select:hover { border-color: var(--accent); }
+dialog input:disabled, dialog select:disabled { opacity: 0.5; cursor: not-allowed; }
+dialog .說明 { color: var(--muted); font-size: 17px; margin: var(--space-2) 0 0; line-height: 1.6; }
+dialog .錯誤 { color: var(--alert); min-height: 1.4em; margin: var(--space-3) 0 0; }
+dialog .按鈕列 { display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-3); }
+dialog button { min-height: 52px; padding: 0 var(--space-5); border: 0; border-radius: 0; font: 800 22px/1 var(--font-display); cursor: pointer; background: none; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out); }
+dialog button:hover { background: var(--paper-2); }
+dialog button:active { background: var(--ink); color: var(--paper); }
+dialog button.主要 { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+dialog button.主要:hover { background: var(--accent-deep); }
+dialog button.主要:active { background: var(--ink); color: var(--paper); }
+dialog button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* 山的顏色 */
+.山色上 { stop-color: var(--mount-top); } .山色下 { stop-color: var(--mount-bottom); }
+.遠山上 { stop-color: var(--far-top); } .遠山下 { stop-color: var(--far-bottom); }
+.光暈心 { stop-color: var(--glow); stop-opacity: 1; } .光暈邊 { stop-color: var(--glow); stop-opacity: 0; }
+.太陽 { fill: var(--sun); } .雲 ellipse { fill: var(--cloud); }
+.雪頂 { fill: var(--snowcap); } .頂旗桿 { stroke: var(--pole); } .頂旗 { fill: var(--summit-flag); }
+#步道 { stroke: var(--trail); }
+.地面 { fill: var(--ground); } .地面邊 { fill: var(--ground-edge); }
+.帳篷 { fill: var(--tent); } .帳篷門 { fill: var(--tent-door); } .帳篷桿 { stroke: var(--tent-door); }
+.營地字 { fill: var(--camp-ink); font-family: var(--font-body); font-size: 24px; font-weight: 800; }
+#隊伍 text { font-family: var(--font-body); }
+.人們 > g > text { fill: var(--name-ink); stroke: var(--name-halo); font-size: 15px; }
+.臉 > rect:first-child { fill: var(--pack); } .臉 > line { stroke: var(--legs); } .臉 > circle { fill: var(--skin); }
+.人們 > path { stroke: var(--rope); }
+.身 > g:not(.人們) > line { stroke: var(--pole); }
+.皇冠形 { fill: var(--crown); stroke: var(--crown-edge); stroke-width: 2; stroke-linejoin: round; }
+.問號 { fill: var(--alert); } .超車 { fill: var(--alert); stroke: var(--name-halo); }
+
+/* 山上的小人 */
+.隊 .身 { transition: transform 0.3s; }
+.隊.走 .人 { animation: 走路 0.36s ease-in-out infinite alternate; }
+.隊.走 .人:nth-child(2n) { animation-delay: 0.18s; }
+@keyframes 走路 { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+.隊.跳 .身 { animation: 跳 0.5s ease-out 3; }
+@keyframes 跳 { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-22px); } }
+.超車 { opacity: 0; transition: opacity 0.3s; }
+.隊.跳 .超車 { opacity: 1; }
+.隊.朝左 .臉 { transform: scaleX(-1); }
+.皇冠 { display: none; }
+.隊.第一 .皇冠 { display: inline; }
+.問號 { display: none; }
+.隊.讀不懂 .問號 { display: inline; animation: 晃 1.2s ease-in-out infinite; }
+@keyframes 晃 { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+.山頂光 { animation: 光 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes 光 { 0%, 100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 0.8; transform: scale(1.1); } }
+.雲 { animation: 飄 60s linear infinite; }
+.雲.慢 { animation-duration: 90s; }
+@keyframes 飄 { from { transform: translateX(-300px); } to { transform: translateX(1500px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .雲, .山頂光, .隊.走 .人, .隊.跳 .身, .隊.讀不懂 .問號 { animation: none; }
+  .隊 .身, .超車, .齒輪, dialog button, dialog input, dialog select { transition: none; }
+}
 </style>
 </head>
 <body>
@@ -124,55 +233,55 @@
   <main class="山區">
     <div class="抬頭">
       <h1 id="名稱">榜單</h1>
-      <p id="副標">按右上角 ⚙️ 貼上成績表的連結</p>
+      <p id="副標">按右上角的齒輪，貼上成績表的連結</p>
     </div>
     <svg id="山" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMax meet" aria-label="各組在山上的位置">
       <defs>
         <linearGradient id="山色" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#6f8fa6"/>
-          <stop offset="1" stop-color="#3f6b52"/>
+          <stop offset="0" class="山色上"/>
+          <stop offset="1" class="山色下"/>
         </linearGradient>
         <linearGradient id="遠山色" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#a9c4d6"/>
-          <stop offset="1" stop-color="#8fb3a0"/>
+          <stop offset="0" class="遠山上"/>
+          <stop offset="1" class="遠山下"/>
         </linearGradient>
         <radialGradient id="光暈">
-          <stop offset="0" stop-color="#fff6b0" stop-opacity="1"/>
-          <stop offset="1" stop-color="#fff6b0" stop-opacity="0"/>
+          <stop offset="0" class="光暈心"/>
+          <stop offset="1" class="光暈邊"/>
         </radialGradient>
       </defs>
-      <circle cx="1060" cy="110" r="52" fill="#ffe27a"/>
-      <g class="雲"><ellipse cx="0" cy="150" rx="70" ry="22" fill="#fff" opacity="0.85"/><ellipse cx="40" cy="135" rx="45" ry="22" fill="#fff" opacity="0.85"/></g>
-      <g class="雲 慢"><ellipse cx="-200" cy="250" rx="90" ry="24" fill="#fff" opacity="0.7"/><ellipse cx="-150" cy="232" rx="50" ry="22" fill="#fff" opacity="0.7"/></g>
+      <circle class="太陽" cx="1060" cy="110" r="52"/>
+      <g class="雲"><ellipse cx="0" cy="150" rx="70" ry="22" opacity="0.85"/><ellipse cx="40" cy="135" rx="45" ry="22" opacity="0.85"/></g>
+      <g class="雲 慢"><ellipse cx="-200" cy="250" rx="90" ry="24" opacity="0.7"/><ellipse cx="-150" cy="232" rx="50" ry="22" opacity="0.7"/></g>
       <!-- 遠山 -->
       <polygon points="700,760 960,250 1240,760" fill="url(#遠山色)"/>
       <polygon points="-60,760 180,380 420,760" fill="url(#遠山色)"/>
       <!-- 主峰 -->
       <polygon points="40,760 600,100 1160,760" fill="url(#山色)"/>
-      <polygon points="600,100 520,194 556,182 584,206 612,180 646,204 676,190" fill="#f4f8fb"/>
+      <polygon points="600,100 520,194 556,182 584,206 612,180 646,204 676,190" class="雪頂"/>
       <circle class="山頂光" cx="600" cy="110" r="70" fill="url(#光暈)"/>
       <!-- 山頂的旗子 -->
-      <line x1="600" y1="100" x2="600" y2="40" stroke="#4a3a2a" stroke-width="4"/>
-      <polygon points="600,40 644,52 600,64" fill="#e0453a"/>
+      <line x1="600" y1="100" x2="600" y2="40" class="頂旗桿" stroke-width="4"/>
+      <polygon class="頂旗" points="600,40 644,52 600,64"/>
       <!-- 步道：0 是起點，越往後越高 -->
       <path id="步道" d="M 170 730 L 430 655 L 270 565 L 520 478 L 395 392 L 600 312 L 535 226 L 600 128"
-            fill="none" stroke="#e9d9b0" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 16" opacity="0.9"/>
+            fill="none" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 16" opacity="0.9"/>
       <!-- 地面與營地 -->
-      <rect x="-200" y="752" width="1600" height="200" fill="#5d8f4e"/>
-      <rect x="-200" y="752" width="1600" height="10" fill="#6fa35c"/>
+      <rect x="-200" y="752" width="1600" height="200" class="地面"/>
+      <rect x="-200" y="752" width="1600" height="4" class="地面邊"/>
       <g transform="translate(95 742)">
-        <polygon points="-46,0 0,-62 46,0" fill="#f29f4b"/>
-        <polygon points="-12,0 0,-34 12,0" fill="#7a4a1e"/>
-        <line x1="0" y1="-62" x2="0" y2="-74" stroke="#7a4a1e" stroke-width="3"/>
+        <polygon class="帳篷" points="-46,0 0,-62 46,0"/>
+        <polygon class="帳篷門" points="-12,0 0,-34 12,0"/>
+        <line x1="0" y1="-62" x2="0" y2="-74" class="帳篷桿" stroke-width="3"/>
       </g>
-      <text x="95" y="790" text-anchor="middle" font-size="18" fill="#fff" font-weight="700">營地</text>
+      <text class="營地字" x="95" y="794" text-anchor="middle">營地</text>
       <g id="隊伍"></g>
     </svg>
   </main>
   <aside class="面板">
     <div class="面板頭">
       <h2 id="面板標題">名次</h2>
-      <button class="齒輪" id="開設定" title="設定成績表" aria-label="設定">⚙️</button>
+      <button class="齒輪" id="開設定" title="設定成績表" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
     </div>
     <ol class="名次表" id="名次表"></ol>
     <div class="狀態列">
@@ -195,6 +304,12 @@
       <option value="">看欄名自動判斷</option>
       <option value="越小越好">越小越好（Loss、MSE）</option>
       <option value="越大越好">越大越好（正確率）</option>
+    </select>
+    <label for="風格選擇">風格</label>
+    <select id="風格選擇">
+      <option value="白天">白天（藍天、白雪）</option>
+      <option value="夜晚">夜晚（深色底，成績最大）</option>
+      <option value="日出">日出（暖色，不下雪）</option>
     </select>
     <label for="名稱輸入">榜單名稱（可不填）</label>
     <input id="名稱輸入" placeholder="例如：高麗菜估價" autocomplete="off">
@@ -280,13 +395,16 @@ const 刷新秒數 = 10;
 const 走路毫秒 = 1500;
 const 靠近比例 = 0.12; // 每格畫面往目標靠近多少
 const 隊距 = 16; // 並排的組之間留多寬
-const 一排高 = 108; // 小人從旗子頂到名字底大約多高
+const 名字第二行y = 36; // 名字錯開兩行，第二行在腳下多低
+const 一排高 = 128; // 小人從旗子頂到第二行名字底大約多高
 const 最小縮放 = 0.6;
-const 山頂留寬 = 220; // 山頂很窄，同分並排時至少給這麼寬（半寬），不然會縮到看不見
+const 可站比例 = 0.9; // 小人只站在山寬的九成以內，不要站到山的邊緣外面
+const 最低排y = 730; // 一排一排往下排，最低排到步道起點的高度
 const 山中心x = 600;
-const 營地左 = 175, 營地可用寬 = 1150 - 營地左;
+const 營地左 = 260, 營地可用寬 = 1150 - 營地左; // 從步道起點右邊開始排，不要和最後一名疊在一起
 const 色票 = ["#e0453a", "#2f7fd8", "#f2a51a", "#2f9e5b", "#8b4fd1", "#e2669f", "#16a3a3", "#7a5230", "#5b6b7a", "#a3c428", "#d9622b", "#3b4bc8"];
 const SVG = "http://www.w3.org/2000/svg";
+const 風格們 = ["白天", "夜晚", "日出"];
 const $ = (id) => document.getElementById(id);
 const 步道 = $("步道");
 const 步道長 = 步道.getTotalLength();
@@ -299,16 +417,18 @@ function 讀設定() {
     連結: id ? `https://docs.google.com/spreadsheets/d/${id}/edit` + (q.get("gid") ? `#gid=${q.get("gid")}` : "") : "",
     方向: ["越小越好", "越大越好"].includes(q.get("方向")) ? q.get("方向") : "",
     名稱: q.get("名稱") || "",
+    風格: 風格們.includes(q.get("風格")) ? q.get("風格") : "白天",
   };
 }
 
-function 寫設定({ 連結, 方向, 名稱 }) {
+function 寫設定({ 連結, 方向, 名稱, 風格 }) {
   const { id, gid } = 解析連結(連結);
   const q = new URLSearchParams();
   q.set("sheet", id);
   if (gid) q.set("gid", gid);
   if (方向) q.set("方向", 方向);
   if (名稱) q.set("名稱", 名稱);
+  if (風格 !== "白天") q.set("風格", 風格);
   history.replaceState(null, "", "?" + q.toString());
 }
 
@@ -318,6 +438,7 @@ function 開設定() {
   $("連結").value = 設定.連結;
   $("方向選擇").value = 設定.方向;
   $("名稱輸入").value = 設定.名稱;
+  $("風格選擇").value = 設定.風格;
   $("設定錯誤").textContent = "";
   $("設定").showModal();
 }
@@ -325,7 +446,7 @@ function 開設定() {
 $("開設定").addEventListener("click", 開設定);
 $("取消").addEventListener("click", () => $("設定").close());
 $("設定表單").addEventListener("submit", (e) => {
-  const 新 = { 連結: $("連結").value.trim(), 方向: $("方向選擇").value, 名稱: $("名稱輸入").value.trim() };
+  const 新 = { 連結: $("連結").value.trim(), 方向: $("方向選擇").value, 名稱: $("名稱輸入").value.trim(), 風格: $("風格選擇").value };
   try {
     解析連結(新.連結);
   } catch (錯) {
@@ -335,6 +456,7 @@ $("設定表單").addEventListener("submit", (e) => {
   }
   寫設定(新);
   設定 = 讀設定();
+  換風格();
   寫名稱();
   for (const 隊 of 隊伍.values()) 隊.根.remove();
   隊伍.clear();
@@ -395,10 +517,11 @@ function 元素(標籤, 屬性 = {}, 父) {
   return e;
 }
 
-function 造一個人(父, x, 色, 名字) {
+function 造一個人(父, x, 色, 名字, 第幾個) {
   // 外層管位置和名字，內層 .人 會上下晃（走路）
+  // 人和人只隔 40，三個字的名字放不下，所以名字一上一下錯開兩行
   const 位 = 元素("g", { transform: `translate(${x} 0)` }, 父);
-  const 名 = 元素("text", { y: 16, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#1d2b36", stroke: "#fff", "stroke-width": 3.5, "paint-order": "stroke" }, 位);
+  const 名 = 元素("text", { y: 第幾個 % 2 ? 名字第二行y : 16,"text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#1d2b36", stroke: "#fff", "stroke-width": 3.5, "paint-order": "stroke" }, 位);
   名.textContent = 名字;
   const 人 = 元素("g", { class: "人" }, 位);
   const 內 = 元素("g", { class: "臉" }, 人); // 朝左時整個人左右翻
@@ -425,8 +548,8 @@ function 造隊伍(g) {
   元素("rect", { x: 0, y: -84, width: 34, height: 22, rx: 3, fill: 色 }, 旗);
   const 組號 = 元素("text", { x: 17, y: -67, "text-anchor": "middle", "font-size": 16, "font-weight": 800, fill: "#fff" }, 旗);
   組號.textContent = g.組別;
-  const 皇冠 = 元素("text", { class: "皇冠", x: 17, y: -90, "text-anchor": "middle", "font-size": 30 }, 旗);
-  皇冠.textContent = "👑";
+  const 皇冠 = 元素("g", { class: "皇冠" }, 旗);
+  元素("polygon", { class: "皇冠形", points: "3,-88 3,-104 10,-96 17,-108 24,-96 31,-104 31,-88" }, 皇冠);
   const 問號 = 元素("text", { class: "問號", x: 0, y: -96, "text-anchor": "middle", "font-size": 34, "font-weight": 900, fill: "#e0453a" }, 身);
   問號.textContent = "?";
   const 超車 = 元素("text", { class: "超車", x: 0, y: -100, "text-anchor": "middle", "font-size": 22, "font-weight": 900, fill: "#e0453a", stroke: "#fff", "stroke-width": 5, "paint-order": "stroke" }, 身);
@@ -436,7 +559,7 @@ function 造隊伍(g) {
     // 沿步道走：現在s 從 起s 走到 目標s
     現在s: 0, 起s: 0, 目標s: 0, 起時: 0,
     在營地: true, 營地點: { x: 0, y: 0 },
-    偏移: 0, 縮放: 1, // 排開擠在一起的組時，往旁邊挪多少、縮多小
+    偏移: 0, 偏移y: 0, 縮放: 1, // 排開擠在一起的組時，往旁邊、往下挪多少、縮多小
     顯示: null, 面向: 1, // 畫面上實際的位置，每格往目標靠近一點
   };
   隊伍.set(g.組別, 隊);
@@ -457,7 +580,7 @@ function 換組員(隊, 組員) {
       const d = 點.slice(1).map((x, i) => `Q ${(點[i] + x) / 2} -10 ${x} -20`).join(" ");
       元素("path", { d: `M ${點[0]} -20 ${d}`, fill: "none", stroke: "#c9a46a", "stroke-width": 2.5 }, 隊.人們);
     }
-    for (let i = 0; i < 人數; i++) 造一個人(隊.人們, 起 + i * 間距, 隊.色, 組員[i] || "");
+    for (let i = 0; i < 人數; i++) 造一個人(隊.人們, 起 + i * 間距, 隊.色, 組員[i] || "", i);
     隊.旗.setAttribute("transform", `translate(${起 - 6} 0)`);
   }
 }
@@ -469,7 +592,7 @@ function 寫名稱() {
 
 function 畫(榜) {
   寫名稱();
-  $("副標").textContent = `${榜.標題 || "成績"}（${榜.方向}${榜.方向是預設的 ? "，看不出方向，請到 ⚙️ 指定" : ""}）`;
+  $("副標").textContent = `${榜.標題 || "成績"}（${榜.方向}${榜.方向是預設的 ? "，看不出方向，請按齒輪指定" : ""}）`;
   $("面板標題").textContent = 榜.標題 || "名次";
 
   // 名次表
@@ -481,7 +604,7 @@ function 畫(榜) {
     if (g.狀態 === "讀不懂") li.classList.add("讀不懂");
     const 名次 = document.createElement("span");
     名次.className = "名次";
-    名次.textContent = g.名次 === 1 ? "🥇" : g.名次 === 2 ? "🥈" : g.名次 === 3 ? "🥉" : g.名次 ?? "–";
+    名次.textContent = g.名次 ?? "–";
     const 誰 = document.createElement("div");
     誰.className = "誰";
     const 組號 = document.createElement("div");
@@ -517,9 +640,10 @@ function 畫(榜) {
   for (const 隊 of 營地隊) {
     const 寬 = 隊寬(隊) * 營地縮放;
     隊.在營地 = true;
-    隊.營地點 = { x: 營地x + 寬 / 2, y: 836 };
+    隊.營地點 = { x: 營地x + 寬 / 2, y: 814 }; // 留位置給兩行名字，不要掉出畫面
     隊.縮放 = 營地縮放;
     隊.偏移 = 0;
+    隊.偏移y = 0;
     營地x += 寬 + 隊距 * 營地縮放;
   }
 
@@ -572,32 +696,47 @@ function 山半寬(y) {
   return Math.max(0, ((y - 100) / 660) * 560);
 }
 
-// 步道一路往上，高度接近就是 y 接近。y 相差不到 一排高 的組串成一排，
-// 在那個高度左右排開；一排比山還寬就整排縮小。
+// 山在這個高度能站人的半寬：留一點邊，腳才不會踩到山外面
+function 可站半寬(y) {
+  return 山半寬(y) * 可站比例;
+}
+
+// 寬度 寬 的一排，最高能排到哪個 y（山頂太窄，放不下就要往下）
+function 放得下的y(寬) {
+  return 100 + (寬 / 2 / (560 * 可站比例)) * 660;
+}
+
+// 步道一路往上，高度接近就是 y 接近。從山頂往下一排一排排：和這排 y 相差不到 一排高、
+// 而且山在這個高度還站得下的組排進同一排；站不下就往下開新的一排。
+// 這樣同分的組擠在山頂時會往下排，不會排到山外面的天空。排到山腳還放不下才縮小。
 function 排開擠在一起的(上山隊) {
   上山隊.sort((a, b) => a.點.y - b.點.y);
   const 排們 = [];
   for (const 一個 of 上山隊) {
+    const 寬 = 隊寬(一個.隊);
     const 上一排 = 排們[排們.length - 1];
-    if (上一排 && 一個.點.y - 上一排[上一排.length - 1].點.y < 一排高) 上一排.push(一個);
-    else 排們.push([一個]);
+    if (上一排 && 一個.點.y - 上一排.y < 一排高 && 上一排.寬 + 隊距 + 寬 <= 2 * 可站半寬(上一排.y)) {
+      上一排.組.push(一個);
+      上一排.寬 += 隊距 + 寬;
+      continue;
+    }
+    const y = Math.min(最低排y, Math.max(一個.點.y, 放得下的y(寬), 上一排 ? 上一排.y + 一排高 : -Infinity));
+    排們.push({ y, 寬, 組: [一個] });
   }
   for (const 排 of 排們) {
-    if (排.length === 1) { 排[0].隊.偏移 = 0; 排[0].隊.縮放 = 1; continue; }
-    排.sort((a, b) => a.點.x - b.點.x);
-    const 寬 = 排.reduce((和, { 隊 }) => 和 + 隊寬(隊) + 隊距, -隊距);
-    const 平均y = 排.reduce((和, { 點 }) => 和 + 點.y, 0) / 排.length;
-    const 半寬 = Math.max(山頂留寬, 山半寬(平均y) + 40);
-    const 縮放 = Math.max(最小縮放, Math.min(1, (半寬 * 2) / 寬));
-    const 實寬 = 寬 * 縮放;
+    排.組.sort((a, b) => a.點.x - b.點.x);
+    const 半寬 = 可站半寬(排.y);
+    const 縮放 = Math.max(最小縮放, Math.min(1, (半寬 * 2) / 排.寬));
+    const 實寬 = 排.寬 * 縮放;
     // 中心盡量對著原本的位置，但整排不要跑出山外
-    let 中心 = 排.reduce((和, { 點 }) => 和 + 點.x, 0) / 排.length;
+    let 中心 = 排.組.reduce((和, { 點 }) => 和 + 點.x, 0) / 排.組.length;
     const 左界 = 山中心x - 半寬 + 實寬 / 2, 右界 = 山中心x + 半寬 - 實寬 / 2;
     中心 = 左界 <= 右界 ? Math.min(右界, Math.max(左界, 中心)) : 山中心x;
     let x = 中心 - 實寬 / 2;
-    for (const { 隊, 點 } of 排) {
+    for (const { 隊, 點 } of 排.組) {
       const 這寬 = 隊寬(隊) * 縮放;
       隊.偏移 = x + 這寬 / 2 - 點.x;
+      隊.偏移y = 排.y - 點.y;
       隊.縮放 = 縮放;
       x += 這寬 + 隊距 * 縮放;
     }
@@ -629,7 +768,7 @@ function 動畫(現在) {
       const 緩 = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
       隊.現在s = 隊.起s + (隊.目標s - 隊.起s) * 緩;
       const 點 = 步道.getPointAtLength(隊.現在s);
-      目標 = { x: 點.x + 隊.偏移, y: 點.y, k: 隊.縮放 };
+      目標 = { x: 點.x + 隊.偏移, y: 點.y + 隊.偏移y, k: 隊.縮放 };
     }
     // 不直接跳到目標，每格靠近一點：換位置、縮放、回營地都會滑過去
     const 舊 = 隊.顯示 || 目標;
@@ -648,6 +787,661 @@ function 動畫(現在) {
   requestAnimationFrame(動畫);
 }
 
+// ---------- 立體（three.js） ----------
+// 位置還是原本的程式算（隊.顯示、偏移、縮放、面向），名字、問號、超車也還是 SVG 疊在最上面，所以字清楚、
+// 排開名字的算法不用重寫。three.js 畫山、步道、小人、旗子、皇冠和背景。
+// 正交相機的範圍和 SVG 的 viewBox 對齊：SVG 上的 (x, y) 就是 three.js 的 (x, -y)。
+// 電腦跑不了 WebGL 時不會加上 .有3D，畫面就是原本平面的山。
+const 斜角 = (7 * Math.PI) / 180; // 從稍微高一點的地方往下看，地面才看得出深度
+const 風格光 = {
+  白天: { 雪: 1, 環境: 1.0, 日: 2.6, 補: 0.45, 星: 0, 火: 0.3 },
+  夜晚: { 雪: 1, 環境: 0.6, 日: 0.9, 補: 1.3, 星: 1, 火: 1 },
+  日出: { 雪: 0, 環境: 0.9, 日: 2.8, 補: 0.45, 星: 0, 火: 0.5 },
+};
+let 立體承諾 = null;
+
+const 量色筆 = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+function 讀色(THREE, 名) {
+  量色筆.clearRect(0, 0, 1, 1);
+  量色筆.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(名).trim();
+  量色筆.fillRect(0, 0, 1, 1);
+  const [r, g, b] = 量色筆.getImageData(0, 0, 1, 1).data;
+  return new THREE.Color().setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace);
+}
+function 種子亂數(種子) {
+  return () => {
+    種子 = (種子 + 0x6d2b79f5) | 0;
+    let t = Math.imul(種子 ^ (種子 >>> 15), 1 | 種子);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// 柏林雜訊（Ken Perlin 改良版），用來做山的稜線、溝和雪線
+function 柏林(種子) {
+  const 亂 = 種子亂數(種子), 表 = [...Array(256).keys()], p = new Uint8Array(512);
+  for (let i = 255; i > 0; i--) { const j = Math.floor(亂() * (i + 1)); [表[i], 表[j]] = [表[j], 表[i]]; }
+  for (let i = 0; i < 512; i++) p[i] = 表[i & 255];
+  const 緩 = (t) => t * t * t * (t * (t * 6 - 15) + 10), 插 = (a, b, t) => a + t * (b - a);
+  const 梯 = (h, x, y, z) => { h &= 15; const u = h < 8 ? x : y, v = h < 4 ? y : h === 12 || h === 14 ? x : z; return (h & 1 ? -u : u) + (h & 2 ? -v : v); };
+  function 噪(x, y, z) {
+    const X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+    x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+    const u = 緩(x), v = 緩(y), w = 緩(z);
+    const A = p[X] + Y, AA = p[A] + Z, AB = p[A + 1] + Z, B = p[X + 1] + Y, BA = p[B] + Z, BB = p[B + 1] + Z;
+    return 插(插(插(梯(p[AA], x, y, z), 梯(p[BA], x - 1, y, z), u), 插(梯(p[AB], x, y - 1, z), 梯(p[BB], x - 1, y - 1, z), u), v),
+      插(插(梯(p[AA + 1], x, y, z - 1), 梯(p[BA + 1], x - 1, y, z - 1), u), 插(梯(p[AB + 1], x, y - 1, z - 1), 梯(p[BB + 1], x - 1, y - 1, z - 1), u), v), w);
+  }
+  return {
+    fbm(x, y, z, 層) {
+      let 和 = 0, 幅 = 0.5, 頻 = 1;
+      for (let i = 0; i < 層; i++) { 和 += 幅 * 噪(x * 頻, y * 頻, z * 頻); 幅 *= 0.5; 頻 *= 2.03; }
+      return 和;
+    },
+  };
+}
+
+async function 準備立體() {
+  const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");
+  const 色 = (名) => 讀色(THREE, 名);
+  const 區 = document.querySelector(".山區");
+  const 畫布 = document.createElement("canvas");
+  畫布.className = "立體畫布";
+  畫布.setAttribute("aria-hidden", "true");
+  const 畫家 = new THREE.WebGLRenderer({ canvas: 畫布, antialias: true, alpha: true }); // 沒有 WebGL 會在這裡丟錯
+  畫家.setPixelRatio(Math.min(2, devicePixelRatio));
+  畫家.shadowMap.enabled = true;
+  畫家.shadowMap.type = THREE.PCFSoftShadowMap;
+  區.prepend(畫布);
+
+  const 場景 = new THREE.Scene();
+  const 相機 = new THREE.OrthographicCamera(0, 1200, 0, -860, 1, 9000);
+  相機.position.set(0, 0, 4500);
+  // 世界的原點放在山腳中心 (600, 760)
+  const 世界 = new THREE.Group();
+  世界.position.set(600, -760, 0);
+  世界.rotation.x = 斜角;
+  場景.add(世界);
+
+  // 換風格時只換顏色：每個材質記住自己用哪個顏色 token
+  const 染過 = [];
+  const 染 = (材質, 名) => { 染過.push([材質, 名]); return 材質; };
+  const 實 = (名, 選項 = {}) => 染(new THREE.MeshStandardMaterial({ roughness: 0.85, ...選項 }), 名);
+  const 稜 = (名, 選項 = {}) => 實(名, { flatShading: true, ...選項 });
+  const 亮 = (名, 選項 = {}) => 染(new THREE.MeshBasicMaterial(選項), 名);
+  const 放 = (幾何, 材質, 父, x = 0, y = 0, z = 0) => {
+    const o = new THREE.Mesh(幾何, 材質);
+    o.position.set(x, y, z);
+    父.add(o);
+    return o;
+  };
+  const 組 = (父, x = 0, y = 0, z = 0) => {
+    const o = new THREE.Group();
+    o.position.set(x, y, z);
+    父.add(o);
+    return o;
+  };
+  const 投影 = (o) => { o.castShadow = true; o.receiveShadow = true; return o; };
+  // 雪花和星星用一張圓形漸層圖，不然點是方的
+  const 雪花圖 = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 32;
+    const g = c.getContext("2d"), 漸 = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+    漸.addColorStop(0, "#fff"); 漸.addColorStop(0.5, "rgba(255,255,255,0.8)"); 漸.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = 漸; g.fillRect(0, 0, 32, 32);
+    return new THREE.CanvasTexture(c);
+  })();
+
+  // ---- 山：細的網格加上雜訊（稜線、溝、小起伏），平滑打光；雪依高度和坡度慢慢過渡 ----
+  // 圓錐的接縫轉到背面（thetaStart = π），不然正面會看到一條線。山頂和山腳那一圈不動，輪廓才對得上
+  const 平滑 = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const 山們 = [];
+  function 造山(父, 半徑, 高, 圈數, 層數, 種子, 雪線, 色名) {
+    const 雜 = 柏林(種子);
+    const g = new THREE.ConeGeometry(半徑, 高, 圈數, 層數, true, Math.PI).translate(0, 高 / 2, 0);
+    const p = g.attributes.position;
+    const 岩紋 = new Float32Array(p.count), 雪量 = new Float32Array(p.count);
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), h = y / 高;
+      const a = Math.atan2(z, x);
+      const 稜 = 1 - Math.abs(雜.fbm(Math.cos(a) * 2.4, h * 1.3, Math.sin(a) * 2.4, 4)); // 上下拉長的稜線和溝
+      const 細 = 雜.fbm((x / 半徑) * 7, h * 9, (z / 半徑) * 7, 5);
+      const 收 = Math.min(1, (1 - h) * 6) * Math.min(1, h * 20); // 山頂和山腳收回原位
+      const k = 1 + 收 * (0.1 * (稜 - 0.62) + 0.05 * 細);
+      p.setXYZ(i, x * k, y + 收 * 高 * 0.03 * 細, z * k);
+      岩紋[i] = 0.5 + 0.9 * 雜.fbm((x / 半徑) * 14, h * 30, (z / 半徑) * 14, 3);
+    }
+    g.computeVertexNormals();
+    const n = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      const h = p.getY(i) / 高;
+      const 線 = 雪線 + 0.07 * 雜.fbm((p.getX(i) / 半徑) * 3, 5.1, (p.getZ(i) / 半徑) * 3, 3);
+      雪量[i] = 平滑(線 - 0.04, 線 + 0.04, h + (n.getY(i) - 0.62) * 0.8);
+    }
+    g.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(p.count * 3), 3));
+    const 山 = 投影(放(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.93 }), 父));
+    山們.push({ g, 岩紋, 雪量, 色名 });
+    return 山;
+  }
+  function 山上色() {
+    const c = new THREE.Color(), 岩c = new THREE.Color(), 雪c = new THREE.Color();
+    for (const { g, 岩紋, 雪量, 色名: [雪名, 雪影名, 岩名, 岩暗名] } of 山們) {
+      const 雪 = 色(雪名), 雪影 = 色(雪影名), 岩 = 色(岩名), 岩暗 = 岩暗名 ? 色(岩暗名) : 色(岩名).multiplyScalar(0.82);
+      const 顏 = g.attributes.color;
+      for (let i = 0; i < 顏.count; i++) {
+        const t = Math.min(1, Math.max(0, 岩紋[i]));
+        岩c.lerpColors(岩, 岩暗, t);
+        雪c.lerpColors(雪, 雪影, t * 0.45);
+        c.lerpColors(岩c, 雪c, 雪量[i]);
+        顏.setXYZ(i, c.r, c.g, c.b);
+      }
+      顏.needsUpdate = true;
+    }
+  }
+  const 高 = 660 / Math.cos(斜角), 半徑 = 560;
+  造山(世界, 半徑, 高, 200, 100, 7, 0.56, ["--d-snow", "--d-snow-shade", "--d-rock", "--d-rock-dark"]);
+
+  // 山頂的大旗
+  const 頂旗 = 組(世界, 0, 高 - 4, 0);
+  投影(放(new THREE.CylinderGeometry(1.6, 1.6, 64, 8).translate(0, 32, 0), 實("--pole"), 頂旗));
+  放(new THREE.SphereGeometry(3, 12, 8), 實("--crown", { metalness: 0.4, roughness: 0.4 }), 頂旗, 0, 65, 0);
+  const 頂布 = new THREE.PlaneGeometry(46, 26, 14, 5).translate(23, 49, 0);
+  投影(放(頂布, 稜("--summit-flag", { side: THREE.DoubleSide }), 頂旗));
+  const 頂布原 = 頂布.attributes.position.array.slice();
+
+  // ---- 地面：鋪到山後面一點就停，不然往後延伸的地面會蓋到天空 ----
+  const 地 = new THREE.PlaneGeometry(5000, 1500, 200, 60).rotateX(-Math.PI / 2).translate(0, -0.5, 150);
+  {
+    const p = 地.attributes.position;
+    const 雜 = 柏林(3); // 雪地上一點點起伏
+    for (let i = 0; i < p.count; i++) p.setY(i, -3 + 7 * 雜.fbm(p.getX(i) * 0.006, 0.5, p.getZ(i) * 0.006, 4));
+  }
+  地.computeVertexNormals();
+  放(地, 實("--d-ground", { roughness: 0.95 }), 世界).receiveShadow = true;
+
+  // 遠山：和主峰一樣的做法，網格粗一點
+  for (const [x, z, r, h, 種子] of [[430, -660, 420, 340, 11], [-470, -630, 360, 270, 23], [40, -760, 300, 230, 31]]) {
+    造山(組(世界, x, 0, z), r, h, 96, 36, 種子, 0.62, ["--d-far-cap", "--d-far-cap", "--d-far", null]);
+  }
+
+  // 松樹和石頭：避開營地那一排（前面中間）和帳篷
+  const 樹幹材 = 實("--d-trunk"), 樹材 = 實("--d-pine"), 雪材 = 實("--d-snow"), 石材 = 稜("--d-stone");
+  const 亂 = 種子亂數(42);
+  const 擋住了 = (x, z) => Math.hypot(x, z) < 半徑 + 30 || (z > 120 && x > -420 && x < 600) || (x < -380 && x > -620 && z > 260);
+  let 種了 = 0;
+  for (let 試 = 0; 種了 < 34 && 試 < 400; 試++) {
+    const a = 亂() * Math.PI * 2, d = 半徑 + 40 + 亂() * 480;
+    const x = Math.cos(a) * d, z = Math.sin(a) * d * 0.9;
+    if (z < -600 || z > 640 || 擋住了(x, z)) continue;
+    種了++;
+    const 樹 = 組(世界, x, 0, z), k = 0.75 + 亂() * 0.6;
+    樹.scale.setScalar(k);
+    樹.rotation.y = 亂() * 6;
+    投影(放(new THREE.CylinderGeometry(4, 5, 16, 12).translate(0, 8, 0), 樹幹材, 樹));
+    for (const [層, 寬, 高度] of [[14, 30, 40], [34, 23, 34], [52, 15, 28]]) {
+      投影(放(new THREE.ConeGeometry(寬, 高度, 18).translate(0, 層 + 高度 / 2, 0), 樹材, 樹));
+      放(new THREE.ConeGeometry(寬 * 0.42, 高度 * 0.42, 18).translate(0, 層 + 高度 * 0.79, 0), 雪材, 樹);
+    }
+  }
+  for (let i = 0, 放了 = 0; 放了 < 22 && i < 300; i++) {
+    const a = 亂() * Math.PI * 2, d = 半徑 - 20 + 亂() * 160;
+    const x = Math.cos(a) * d, z = Math.sin(a) * d;
+    if ((z > 120 && x > -420 && x < 600) || z < -600) continue;
+    放了++;
+    const 石 = 投影(放(new THREE.DodecahedronGeometry(8 + 亂() * 16, 1), 石材, 世界, x, 2, z));
+    石.scale.set(1, 0.55 + 亂() * 0.4, 0.9);
+    石.rotation.set(亂(), 亂() * 6, 亂());
+  }
+
+  // ---- 營地：帳篷、營火、木牌 ----
+  const 營 = 組(世界, -505, 0, 330);
+  營.rotation.y = 0.5;
+  {
+    const 形 = new THREE.Shape([new THREE.Vector2(-36, 0), new THREE.Vector2(0, 48), new THREE.Vector2(36, 0)]);
+    投影(放(new THREE.ExtrudeGeometry(形, { depth: 62, bevelEnabled: false }).translate(0, 0, -31), 稜("--d-tent"), 營));
+    const 門 = new THREE.Shape([new THREE.Vector2(-13, 0), new THREE.Vector2(0, 28), new THREE.Vector2(13, 0)]);
+    放(new THREE.ShapeGeometry(門), 亮("--d-tent-door"), 營, 0, 0, 31.3);
+    for (const z of [-33, 33]) 投影(放(new THREE.CylinderGeometry(1.2, 1.2, 58, 6).translate(0, 29, 0), 實("--pole"), 營, 0, 0, z));
+  }
+  const 營火 = 組(世界, -430, 0, 500);
+  for (const a of [0.4, -0.4, 1.6]) {
+    const 柴 = 投影(放(new THREE.CylinderGeometry(2.4, 2.4, 26, 6), 樹幹材, 營火, 0, 3, 0));
+    柴.rotation.set(Math.PI / 2, 0, a);
+  }
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    投影(放(new THREE.DodecahedronGeometry(3.4, 0), 石材, 營火, Math.cos(a) * 15, 1.5, Math.sin(a) * 15));
+  }
+  const 火材 = 亮("--d-fire", { transparent: true, opacity: 0.92 });
+  const 火焰 = [[0, 0, 7, 22], [4, 2, 4.5, 15], [-4, -1, 4.5, 14]].map(([x, z, r, h]) =>
+    放(new THREE.ConeGeometry(r, h, 7).translate(0, h / 2, 0), 火材, 營火, x, 3, z));
+  const 火光 = new THREE.PointLight(0xffffff, 0, 420, 1);
+  火光.position.set(0, 26, 0);
+  營火.add(火光);
+  const 牌 = 組(世界, -560, 0, 560);
+  {
+    const 字布 = document.createElement("canvas");
+    字布.width = 256; 字布.height = 128;
+    const 筆 = 字布.getContext("2d");
+    const 寫牌 = () => {
+      筆.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--d-sign").trim();
+      筆.fillRect(0, 0, 256, 128);
+      筆.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--d-flag-ink").trim();
+      筆.font = "800 76px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+      筆.textAlign = "center"; 筆.textBaseline = "middle";
+      筆.fillText("營地", 128, 70);
+      牌圖.needsUpdate = true;
+    };
+    const 牌圖 = new THREE.CanvasTexture(字布);
+    牌圖.colorSpace = THREE.SRGBColorSpace;
+    投影(放(new THREE.CylinderGeometry(2, 2, 46, 6).translate(0, 23, 0), 樹幹材, 牌));
+    投影(放(new THREE.BoxGeometry(56, 28, 3), new THREE.MeshStandardMaterial({ map: 牌圖, roughness: 0.9 }), 牌, 0, 40, 2));
+    牌.寫 = 寫牌;
+  }
+
+  // ---- 天空：太陽（夜裡是月亮）、星星、雲 ----
+  const 太陽 = 放(new THREE.CircleGeometry(52, 48), 亮("--d-sun"), 場景, 1060, -110, -4000);
+  const 光圈們 = [[80, 0.3], [120, 0.16], [170, 0.08]].map(([r, o]) =>
+    放(new THREE.CircleGeometry(r, 48), 亮("--d-sun", { transparent: true, opacity: o, depthWrite: false }), 場景, 1060, -110, -4100 - r));
+  const 星數 = 260, 星點 = new Float32Array(星數 * 3);
+  const 星幾何 = new THREE.BufferGeometry();
+  星幾何.setAttribute("position", new THREE.BufferAttribute(星點, 3));
+  const 星材 = 染(new THREE.PointsMaterial({ size: 3.2 * 畫家.getPixelRatio(), sizeAttenuation: false, transparent: true, map: 雪花圖, depthWrite: false }), "--d-star");
+  場景.add(new THREE.Points(星幾何, 星材));
+  // 雲：在畫布上疊很多顆柔邊的圓，底部壓平、加一點陰影，做成蓬鬆的雲貼圖
+  function 雲圖(種子) {
+    const 亂 = 種子亂數(種子), c = document.createElement("canvas");
+    c.width = 512; c.height = 256;
+    const g = c.getContext("2d");
+    for (let i = 0; i < 26; i++) {
+      const u = 0.14 + 0.72 * 亂(), 鐘 = Math.exp(-(((u - 0.5) / 0.24) ** 2));
+      const r = (34 + 60 * 鐘) * (0.75 + 0.5 * 亂()), x = u * 512, y = 178 - 鐘 * 52 - 亂() * 30;
+      const 漸 = g.createRadialGradient(x, y, 0, x, y, r);
+      漸.addColorStop(0, "rgba(255,255,255,1)"); 漸.addColorStop(0.62, "rgba(255,255,255,0.92)"); 漸.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = 漸;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    g.globalCompositeOperation = "source-atop"; // 下半部暗一點，看起來有厚度
+    const 影 = g.createLinearGradient(0, 90, 0, 210);
+    影.addColorStop(0, "rgba(120,135,160,0)"); 影.addColorStop(1, "rgba(120,135,160,0.38)");
+    g.fillStyle = 影; g.fillRect(0, 0, 512, 256);
+    g.globalCompositeOperation = "destination-in"; // 底部壓平但邊是柔的
+    const 底 = g.createLinearGradient(0, 180, 0, 214);
+    底.addColorStop(0, "rgba(0,0,0,1)"); 底.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = 底; g.fillRect(0, 0, 512, 256);
+    const 圖 = new THREE.CanvasTexture(c);
+    圖.colorSpace = THREE.SRGBColorSpace;
+    return 圖;
+  }
+  const 雲們 = [[100, -170, 1, 3], [700, -240, 0.8, 5], [-300, -300, 1.2, 8], [420, -120, 0.6, 13]].map(([x, y, k, 種子]) =>
+    放(new THREE.PlaneGeometry(300 * k, 150 * k), 亮("--d-cloud", { map: 雲圖(種子), transparent: true, depthWrite: false }), 場景, x, y, -3000));
+
+  // ---- 燈 ----
+  const 天光 = new THREE.HemisphereLight(0xffffff, 0x888888, 1);
+  場景.add(天光);
+  const 日光 = new THREE.DirectionalLight(0xffffff, 2.5);
+  日光.castShadow = true;
+  日光.shadow.mapSize.set(2048, 2048);
+  Object.assign(日光.shadow.camera, { left: -1200, right: 1200, top: 1200, bottom: -1200, near: 10, far: 4000 });
+  日光.shadow.bias = -0.0008;
+  日光.shadow.normalBias = 2;
+  世界.add(日光, 日光.target);
+  const 補光 = new THREE.DirectionalLight(0xffffff, 0.5);
+  補光.position.set(-200, 300, 4000);
+  場景.add(補光);
+
+  // ---- 下雪：近的大片、遠的小片 ----
+  const 雪層們 = [[300, 3, 1], [220, 5, 1.6]].map(([數, 大小, 快]) => {
+    const 點 = new Float32Array(數 * 3);
+    const 幾何 = new THREE.BufferGeometry();
+    幾何.setAttribute("position", new THREE.BufferAttribute(點, 3));
+    const 材質 = 染(new THREE.PointsMaterial({ size: 大小 * 1.6 * 畫家.getPixelRatio(), sizeAttenuation: false, transparent: true, opacity: 0.9, map: 雪花圖, depthWrite: false }), "--d-flake");
+    const 片 = new THREE.Points(幾何, 材質);
+    場景.add(片);
+    return { 數, 點, 幾何, 快, 片 };
+  });
+  const 隨 = (a, b) => a + Math.random() * (b - a);
+  const 撒 = () => {
+    for (const 層 of 雪層們) {
+      for (let i = 0; i < 層.數; i++) 層.點.set([隨(相機.left, 相機.right), 隨(相機.bottom, 相機.top), 4000], i * 3);
+      層.幾何.attributes.position.needsUpdate = true;
+    }
+    for (let i = 0; i < 星數; i++) 星點.set([隨(相機.left, 相機.right), 隨(-640, 相機.top), -4500], i * 3);
+    星幾何.attributes.position.needsUpdate = true;
+  };
+
+  // ---- 步道：一顆顆小石頭，畫在山的前面、小人的後面 ----
+  const 步道點 = Math.floor(步道長 / 15);
+  const 步道石 = new THREE.InstancedMesh(new THREE.SphereGeometry(4.2, 12, 8), 實("--d-trail", { roughness: 0.6 }), 步道點);
+  {
+    const m = new THREE.Matrix4();
+    for (let i = 0; i < 步道點; i++) {
+      const p = 步道.getPointAtLength(i * 15 + 4);
+      m.makeScale(1, 0.8, 1).setPosition(p.x, -p.y, 1100);
+      步道石.setMatrixAt(i, m);
+    }
+  }
+  場景.add(步道石);
+
+  // ---- 小人 ----
+  const 幾 = {
+    大腿: new THREE.CapsuleGeometry(3.1, 5, 4, 10).translate(0, -5.5, 0),
+    小腿: new THREE.CapsuleGeometry(2.7, 5, 4, 10).translate(0, -5, 0),
+    靴: new THREE.BoxGeometry(6.4, 3.8, 9.5).translate(0, -1.4, 1.8),
+    靴底: new THREE.BoxGeometry(6.8, 1.2, 10).translate(0, -3.4, 1.8),
+    骨盆: new THREE.SphereGeometry(6.4, 14, 10).scale(1.12, 0.72, 0.82),
+    軀幹: new THREE.CapsuleGeometry(7.2, 6, 6, 16).scale(1, 1, 0.78),
+    衣襬: new THREE.TorusGeometry(6.9, 1.3, 6, 18).rotateX(Math.PI / 2).scale(1, 1, 0.8),
+    拉鍊: new THREE.BoxGeometry(0.9, 15, 0.9),
+    口袋: new THREE.BoxGeometry(4.2, 3.4, 0.8),
+    圍巾: new THREE.TorusGeometry(4.8, 2.1, 8, 18).rotateX(Math.PI / 2),
+    圍巾尾: new THREE.BoxGeometry(3, 8, 1.4).translate(0, -4, 0),
+    背包: new THREE.BoxGeometry(12, 15, 6.5),
+    背包蓋: new THREE.BoxGeometry(12.6, 4, 7.2),
+    睡袋: new THREE.CylinderGeometry(2.8, 2.8, 14.5, 12).rotateZ(Math.PI / 2),
+    背帶: new THREE.BoxGeometry(1.7, 14, 0.9),
+    上臂: new THREE.CapsuleGeometry(2.4, 4.6, 4, 10).translate(0, -4.7, 0),
+    前臂: new THREE.CapsuleGeometry(2.2, 4, 4, 10).translate(0, -4.2, 0),
+    手套: new THREE.SphereGeometry(2.7, 12, 8),
+    杖: new THREE.CylinderGeometry(0.55, 0.55, 32, 6).translate(0, -13, 0),
+    杖把: new THREE.CapsuleGeometry(0.95, 3, 3, 6),
+    杖托: new THREE.TorusGeometry(1.8, 0.4, 4, 10).rotateX(Math.PI / 2),
+    頭: new THREE.SphereGeometry(7, 22, 16),
+    眼: new THREE.SphereGeometry(0.95, 8, 6),
+    亮點: new THREE.SphereGeometry(0.32, 6, 4),
+    鼻: new THREE.SphereGeometry(1.1, 8, 6),
+    臉頰: new THREE.SphereGeometry(1.4, 8, 6).scale(1, 0.7, 0.35),
+    嘴: new THREE.TorusGeometry(1.3, 0.32, 4, 10, Math.PI).rotateZ(Math.PI),
+    耳: new THREE.SphereGeometry(1.6, 8, 6).scale(0.6, 1, 1),
+    帽: new THREE.SphereGeometry(7.6, 22, 10, 0, Math.PI * 2, 0, Math.PI * 0.52),
+    帽沿: new THREE.TorusGeometry(7.3, 1.5, 8, 22).rotateX(Math.PI / 2),
+    毛球: new THREE.IcosahedronGeometry(2.7, 1),
+    護目鏡: new THREE.TorusGeometry(2, 0.7, 6, 12),
+    影: new THREE.CircleGeometry(10, 20).scale(1, 0.32, 1),
+  };
+  const 材 = {
+    皮: 實("--skin", { roughness: 0.7 }), 褲: 實("--legs"), 靴: 實("--d-boot", { roughness: 0.7 }), 鞋底: 實("--d-glove"),
+    手套: 實("--d-glove"), 背包: 實("--pack"), 睡袋: 實("--rope"), 繩: 實("--rope"), 杖: 實("--d-metal", { metalness: 0.6, roughness: 0.35 }),
+    眼: 實("--d-eye", { roughness: 0.3 }), 亮點: 亮("--d-scarf"), 頰: 實("--d-cheek"), 圍巾: 實("--d-scarf"),
+    鏡: 實("--d-glove", { roughness: 0.2, metalness: 0.3 }), 皇冠: 實("--crown", { metalness: 0.55, roughness: 0.3 }),
+    寶石: 實("--summit-flag", { roughness: 0.2 }), 旗桿: 實("--pole"),
+    影: 染(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.22, depthWrite: false }), "--d-shadow"),
+  };
+
+  function 造人(父, x, 衣, 衣暗, 相位) {
+    const 根 = 組(父, x, 0, 0);
+    放(幾.影, 材.影, 根, 0, 0.3, -3);
+    const 身體 = 組(根);
+    const 腿們 = [-1, 1].map((邊) => {
+      const 腿 = 組(身體, 邊 * 3.8, 23, 0);
+      放(幾.大腿, 材.褲, 腿);
+      const 膝 = 組(腿, 0, -10, 0);
+      放(幾.小腿, 材.褲, 膝);
+      放(幾.靴, 材.靴, 膝, 0, -9.5, 0);
+      放(幾.靴底, 材.鞋底, 膝, 0, -9.5, 0);
+      return { 腿, 膝 };
+    });
+    放(幾.骨盆, 材.褲, 身體, 0, 24, 0);
+    const 上身 = 組(身體, 0, 23, 0);
+    放(幾.軀幹, 衣, 上身, 0, 10, 0);
+    放(幾.衣襬, 衣暗, 上身, 0, 2.6, 0);
+    放(幾.拉鍊, 衣暗, 上身, 0, 10, 5.7);
+    放(幾.口袋, 衣暗, 上身, -3.6, 6.4, 5.3);
+    放(幾.圍巾, 材.圍巾, 上身, 0, 19.4, 0);
+    放(幾.圍巾尾, 材.圍巾, 上身, 2.6, 18.6, 5.6).rotation.z = 0.25;
+    for (const 邊 of [-1, 1]) 放(幾.背帶, 材.背包, 上身, 邊 * 3.7, 11, 5.6);
+    放(幾.背包, 材.背包, 上身, 0, 11, -8.6);
+    放(幾.背包蓋, 衣暗, 上身, 0, 18, -8.6);
+    放(幾.睡袋, 材.睡袋, 上身, 0, 22.4, -8.8);
+    const 手們 = [-1, 1].map((邊) => {
+      const 肩 = 組(上身, 邊 * 8.7, 18, 0);
+      肩.rotation.z = 邊 * 0.14;
+      放(幾.上臂, 衣, 肩);
+      const 肘 = 組(肩, 0, -8.8, 0);
+      放(幾.前臂, 衣, 肘);
+      放(幾.手套, 材.手套, 肘, 0, -8.6, 0.4);
+      if (邊 > 0) {
+        const 杖 = 組(肘, 0, -8.6, 0.6);
+        杖.rotation.x = 0.35;
+        放(幾.杖, 材.杖, 杖);
+        放(幾.杖把, 材.手套, 杖, 0, 1.2, 0);
+        放(幾.杖托, 材.手套, 杖, 0, -25, 0);
+      }
+      return { 肩, 肘 };
+    });
+    const 頭 = 組(上身, 0, 27, 0.4);
+    放(幾.頭, 材.皮, 頭);
+    for (const 邊 of [-1, 1]) {
+      放(幾.眼, 材.眼, 頭, 邊 * 2.5, 0.6, 6.3);
+      放(幾.亮點, 材.亮點, 頭, 邊 * 2.5 + 0.35, 1, 7.15);
+      放(幾.臉頰, 材.頰, 頭, 邊 * 4, -1.6, 5.75);
+      放(幾.耳, 材.皮, 頭, 邊 * 6.9, 0, 0);
+    }
+    放(幾.鼻, 材.皮, 頭, 0, -0.8, 7);
+    放(幾.嘴, 材.眼, 頭, 0, -2.6, 6.55);
+    放(幾.帽, 衣暗, 頭, 0, 0.9, 0);
+    放(幾.帽沿, 材.圍巾, 頭, 0, 1.6, 0);
+    放(幾.毛球, 材.圍巾, 頭, 0, 9.4, 0);
+    for (const 邊 of [-1, 1]) 放(幾.護目鏡, 材.鏡, 頭, 邊 * 2.4, 5.2, 5.6).rotation.x = -0.5;
+    return { 根, 身體, 上身, 頭, 腿們, 手們, 相位, 走: 0, 轉: 0 };
+  }
+
+  const 隊3D = new Map(); // 原本的隊 → 立體的那一組
+  function 寫旗(t3) {
+    const 筆 = t3.旗字布.getContext("2d");
+    筆.fillStyle = t3.色字;
+    筆.fillRect(0, 0, 136, 88);
+    筆.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--d-flag-ink").trim();
+    筆.font = "800 68px 'Barlow Condensed', 'Noto Sans TC', sans-serif";
+    筆.textAlign = "center"; 筆.textBaseline = "middle";
+    筆.fillText(t3.組別, 68, 48);
+    t3.旗圖.needsUpdate = true;
+  }
+  function 造立體隊(組別, 隊) {
+    const 根 = 組(場景);
+    根.rotation.x = 斜角;
+    const 衣 = new THREE.MeshStandardMaterial({ color: new THREE.Color(隊.色), roughness: 0.62 });
+    const 衣暗 = new THREE.MeshStandardMaterial({ color: new THREE.Color(隊.色).multiplyScalar(0.6), roughness: 0.75 });
+    const 人群 = 組(根);
+    const 旗 = 組(根);
+    放(new THREE.CylinderGeometry(1.3, 1.3, 90, 8).translate(0, 45, 0), 材.旗桿, 旗, 0, 0, -4);
+    放(new THREE.SphereGeometry(2.4, 10, 8), 材.皇冠, 旗, 0, 91, -4);
+    const 旗字布 = document.createElement("canvas");
+    旗字布.width = 136; 旗字布.height = 88;
+    const 旗圖 = new THREE.CanvasTexture(旗字布);
+    旗圖.colorSpace = THREE.SRGBColorSpace;
+    旗圖.anisotropy = 4;
+    const 布 = new THREE.PlaneGeometry(34, 22, 12, 5).translate(17, 77, 0);
+    放(布, new THREE.MeshStandardMaterial({ map: 旗圖, side: THREE.DoubleSide, roughness: 0.8 }), 旗, 0, 0, -4);
+    const 皇冠 = 組(旗, 17, 96, -4);
+    放(new THREE.CylinderGeometry(9, 9, 6, 20, 1, true), 實("--crown", { metalness: 0.55, roughness: 0.3, side: THREE.DoubleSide }), 皇冠);
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      放(new THREE.ConeGeometry(2.6, 8, 6), 材.皇冠, 皇冠, Math.cos(a) * 8.4, 6.5, Math.sin(a) * 8.4);
+      放(new THREE.SphereGeometry(1.4, 8, 6), 材.皇冠, 皇冠, Math.cos(a) * 8.4, 11, Math.sin(a) * 8.4);
+      放(new THREE.OctahedronGeometry(1.5, 0), 材.寶石, 皇冠, Math.cos(a + 0.63) * 9.2, 0, Math.sin(a + 0.63) * 9.2);
+    }
+    const t3 = { 根, 衣, 衣暗, 人群, 旗, 布, 布原: 布.attributes.position.array.slice(), 皇冠, 旗字布, 旗圖, 組別, 色字: 隊.色, 人們: [], 名單: null, 繩: null, 跳起: 0 };
+    寫旗(t3);
+    隊3D.set(隊, t3);
+    return t3;
+  }
+  function 換人(t3, 隊) {
+    t3.名單 = 隊.名單;
+    t3.人群.clear();
+    if (t3.繩) t3.繩.geometry.dispose();
+    const n = 隊.人數, 起 = -((n - 1) * 40) / 2;
+    t3.人們 = Array.from({ length: n }, (_, i) => 造人(t3.人群, 起 + i * 40, t3.衣, t3.衣暗, i * 1.7));
+    if (n > 1) {
+      const 點 = [];
+      for (let i = 0; i < n; i++) {
+        點.push(new THREE.Vector3(起 + i * 40, 26, -2));
+        if (i < n - 1) 點.push(new THREE.Vector3(起 + i * 40 + 20, 18, 1));
+      }
+      t3.繩 = 放(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(點), n * 16, 0.9, 6), 材.繩, t3.人群);
+    }
+    t3.旗.position.x = 起 - 6;
+  }
+  function 拆隊(隊, t3) {
+    t3.根.removeFromParent();
+    t3.旗圖.dispose();
+    隊3D.delete(隊);
+  }
+
+  const 近 = (a, b, k) => a + (b - a) * k;
+  function 動小人(t3, 隊, 秒, 差, 靜) {
+    const 走 = 隊.根.classList.contains("走");
+    const k = Math.min(1, 差 * 8);
+    for (const 人 of t3.人們) {
+      人.走 = 近(人.走, 走 && !靜 ? 1 : 0, k);
+      人.轉 = 近(人.轉, 隊.面向 * (走 ? 1.05 : 0.32), Math.min(1, 差 * 6));
+      const w = 人.走, p = 秒 * 9 + 人.相位, s = Math.sin(p);
+      人.根.rotation.y = 人.轉;
+      人.身體.position.y = w * Math.abs(Math.cos(p)) * 1.6;
+      人.上身.rotation.x = 0.03 + w * 0.13;
+      人.上身.scale.y = 1 + (1 - w) * 0.012 * Math.sin(秒 * 2 + 人.相位);
+      const 看 = 靜 ? 0 : (1 - w) * 0.28 * Math.sin(秒 * 0.6 + 人.相位 * 2);
+      人.頭.rotation.y = -人.轉 * 0.45 + 看;
+      人.頭.rotation.x = -0.06 - w * 0.08;
+      人.腿們.forEach(({ 腿, 膝 }, i) => {
+        const 擺 = (i ? -s : s) * 0.6 * w;
+        腿.rotation.x = -擺;
+        膝.rotation.x = 0.06 + w * 0.8 * Math.max(0, i ? s : -s);
+      });
+      人.手們.forEach(({ 肩, 肘 }, i) => {
+        肩.rotation.x = (i ? s : -s) * 0.55 * w - 0.08;
+        肘.rotation.x = -0.35 - w * 0.25;
+      });
+    }
+  }
+  function 飄(幾何, 原, 秒, 長, 幅, 相位) {
+    const p = 幾何.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = 原[i * 3], u = x / 長;
+      p.setZ(i, 原[i * 3 + 2] + Math.sin(x * 0.22 - 秒 * 5 + 相位) * u * 幅);
+      p.setY(i, 原[i * 3 + 1] + Math.sin(x * 0.15 - 秒 * 3.4 + 相位) * u * 幅 * 0.35);
+    }
+    p.needsUpdate = true;
+    幾何.computeVertexNormals();
+  }
+
+  function 跟上隊伍(現在, 秒, 差, 靜) {
+    const 還在 = new Set(隊伍.values());
+    for (const [隊, t3] of 隊3D) if (!還在.has(隊)) 拆隊(隊, t3);
+    const 順序 = [...$("隊伍").children];
+    for (const [組別, 隊] of 隊伍) {
+      const t3 = 隊3D.get(隊) || 造立體隊(組別, 隊);
+      if (t3.名單 !== 隊.名單) 換人(t3, 隊);
+      const 顯 = 隊.顯示;
+      t3.根.visible = !!顯;
+      if (!顯) continue;
+      // 和 SVG 的「跳」一樣：0.5 秒跳一次，跳三次
+      const 跳 = 隊.根.classList.contains("跳");
+      if (跳 && !t3.跳起) t3.跳起 = 現在;
+      if (!跳) t3.跳起 = 0;
+      let 抬 = 0;
+      if (t3.跳起 && !靜) {
+        const e = (現在 - t3.跳起) / 500;
+        if (e < 3) { const f = e % 1; 抬 = 22 * (f < 0.4 ? 1 - (1 - f / 0.4) ** 2 : 1 - ((f - 0.4) / 0.6) ** 2); }
+      }
+      t3.根.position.set(顯.x, -顯.y + 抬, 1200 + 順序.indexOf(隊.根) * 60);
+      t3.根.scale.setScalar(顯.k);
+      t3.皇冠.visible = 隊.根.classList.contains("第一");
+      t3.皇冠.rotation.y = 秒 * 1.2;
+      t3.皇冠.position.y = 96 + Math.sin(秒 * 2.4) * 1.5;
+      if (!靜) 飄(t3.布, t3.布原, 秒, 34, 3.2, t3.人們.length);
+      動小人(t3, 隊, 秒, 差, 靜);
+    }
+  }
+
+  // 讓相機的範圍和 SVG 的 viewBox（xMidYMax meet）對齊
+  function 對齊() {
+    const 框 = 區.getBoundingClientRect(), 圖 = $("山").getBoundingClientRect();
+    畫家.setSize(框.width, 框.height, false);
+    const s = Math.min(圖.width / 1200, 圖.height / 860);
+    const x0 = 圖.left - 框.left + (圖.width - 1200 * s) / 2;
+    const y0 = 圖.top - 框.top + 圖.height - 860 * s;
+    相機.left = -x0 / s;
+    相機.right = (框.width - x0) / s;
+    相機.top = y0 / s;
+    相機.bottom = -(框.height - y0) / s;
+    相機.updateProjectionMatrix();
+  }
+
+  let 光 = 風格光.白天;
+  function 上色() {
+    for (const [材質, 名] of 染過) 材質.color.copy(色(名));
+    山上色();
+    光 = 風格光[document.documentElement.dataset.theme] || 風格光.白天;
+    天光.color.copy(色("--d-hemi-sky"));
+    天光.groundColor.copy(色("--d-hemi-ground"));
+    天光.intensity = 光.環境;
+    日光.color.copy(色("--d-sunlight"));
+    日光.intensity = 光.日;
+    補光.intensity = 光.補;
+    火光.color.copy(色("--d-fire"));
+    星材.opacity = 光.星;
+    for (const 層 of 雪層們) 層.片.visible = !!光.雪; // 日出是晴天，不下雪
+    for (const t3 of 隊3D.values()) 寫旗(t3);
+    牌.寫();
+  }
+
+  const 不動 = matchMedia("(prefers-reduced-motion: reduce)");
+  let 上一格 = performance.now() / 1000;
+  function 畫一格(現在) {
+    const 秒 = 現在 / 1000, 差 = Math.min(0.05, Math.max(0, 秒 - 上一格)), 靜 = 不動.matches;
+    上一格 = 秒;
+    if (!靜) {
+      日光.position.set(500 + 320 * Math.sin(秒 * 0.1), 900, 520); // 太陽慢慢移，山的明暗跟著變
+      for (const [i, 朵] of 雲們.entries()) {
+        朵.position.x += 差 * (9 + i * 4);
+        if (朵.position.x > 相機.right + 220) 朵.position.x = 相機.left - 220;
+      }
+      for (const 層 of 雪層們) {
+        for (let i = 0; i < 層.數; i++) {
+          const j = i * 3;
+          層.點[j] += Math.sin(秒 + i) * 9 * 差 * 層.快;
+          層.點[j + 1] -= (26 + (i % 7) * 7) * 差 * 層.快;
+          if (層.點[j + 1] < 相機.bottom) { 層.點[j + 1] = 相機.top; 層.點[j] = 隨(相機.left, 相機.right); }
+        }
+        層.幾何.attributes.position.needsUpdate = true;
+      }
+      飄(頂布, 頂布原, 秒, 46, 4, 0);
+      火焰.forEach((f, i) => f.scale.set(1, 0.8 + 0.3 * Math.abs(Math.sin(秒 * (9 + i * 3) + i)), 1));
+      for (const [i, 圈] of 光圈們.entries()) 圈.scale.setScalar(1 + 0.04 * Math.sin(秒 * 1.3 + i));
+    } else {
+      日光.position.set(500, 900, 520);
+    }
+    火光.intensity = 光.火 * 2.2 * (靜 ? 1 : 0.85 + 0.15 * Math.sin(秒 * 13));
+    跟上隊伍(現在, 秒, 差, 靜);
+    畫家.render(場景, 相機);
+    requestAnimationFrame(畫一格);
+  }
+  new ResizeObserver(對齊).observe(區);
+  document.fonts?.ready.then(() => { for (const t3 of 隊3D.values()) 寫旗(t3); 牌.寫(); });
+
+  document.documentElement.classList.add("有3D");
+  對齊();
+  撒();
+  上色();
+  requestAnimationFrame(畫一格);
+  return { 上色 };
+}
+
+function 開立體() {
+  立體承諾 = 立體承諾 || 準備立體().catch((錯) => {
+    console.warn("3D 開不起來，先畫平面的山", 錯);
+    return null;
+  });
+  return 立體承諾;
+}
+
+function 換風格() {
+  document.documentElement.dataset.theme = 設定.風格;
+  開立體().then((立體) => 立體?.上色());
+}
+
+換風格();
 寫名稱();
 requestAnimationFrame(動畫);
 if (設定.連結) 讀一次(); else 開設定();
