@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>榜單</title>
+<!--
+  老師投影用的榜單。讀一張成績表（Google 試算表），把各組畫成在山上爬的小人。
+  直接用瀏覽器打開這個檔案就能用，按右上角 ⚙️ 貼上成績表的連結。
+  成績表：第一欄組別，最後一欄成績，中間都是組員。要開「知道連結的人可以檢視」。
+  邏輯的測試：node --test "tools/tests/*.test.mjs"
+-->
+<style>
+  :root {
+    --天空上: #8fd0f5;
+    --天空下: #e6f6ff;
+    --字: #1d2b36;
+    --淡字: #5d6f7c;
+    --面板: rgba(255, 255, 255, 0.86);
+    --線: rgba(29, 43, 54, 0.12);
+    --紅: #e0453a;
+    --綠: #2f9e5b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: linear-gradient(var(--天空上), var(--天空下) 70%);
+    color: var(--字);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+    overflow: hidden;
+  }
+  .版面 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 440px);
+    height: 100vh;
+  }
+  .山區 { position: relative; min-width: 0; }
+  .山區 svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .抬頭 {
+    position: absolute; top: 18px; left: 24px; z-index: 2;
+    pointer-events: none;
+  }
+  .抬頭 h1 { margin: 0; font-size: clamp(26px, 3vw, 46px); letter-spacing: 0.04em; }
+  .抬頭 p { margin: 4px 0 0; font-size: clamp(15px, 1.4vw, 22px); color: var(--淡字); }
+
+  .面板 {
+    background: var(--面板);
+    backdrop-filter: blur(6px);
+    border-left: 1px solid var(--線);
+    display: flex; flex-direction: column;
+    padding: 18px 18px 12px;
+    min-height: 0;
+  }
+  .面板頭 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .面板頭 h2 { margin: 0; font-size: 22px; }
+  .齒輪 {
+    border: 0; background: transparent; font-size: 26px; cursor: pointer;
+    border-radius: 10px; padding: 2px 8px;
+  }
+  .齒輪:hover { background: var(--線); }
+  .名次表 { list-style: none; margin: 12px 0 0; padding: 0; overflow-y: auto; flex: 1; }
+  .名次表 li {
+    display: grid; grid-template-columns: 2.2em 1fr auto; align-items: center; gap: 10px;
+    padding: 5px 6px; border-bottom: 1px solid var(--線);
+    font-size: clamp(15px, 1.15vw, 20px); line-height: 1.25;
+  }
+  .名次表 .名次 { font-weight: 800; font-size: 1.15em; text-align: center; }
+  .名次表 .誰 { min-width: 0; }
+  .名次表 .組號 { font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  .名次表 .點 { width: 0.8em; height: 0.8em; border-radius: 50%; display: inline-block; }
+  .名次表 .組員 { color: var(--淡字); font-size: 0.82em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .名次表 .成績 { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; }
+  .名次表 li.沒名次 { opacity: 0.55; }
+  .名次表 li.讀不懂 .成績 { color: var(--紅); font-weight: 600; font-size: 0.85em; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .狀態列 { display: flex; align-items: center; gap: 8px; color: var(--淡字); font-size: 14px; padding-top: 10px; }
+  .燈 { width: 10px; height: 10px; border-radius: 50%; background: var(--綠); flex: none; }
+  .燈.壞 { background: var(--紅); }
+  .提示 { color: var(--紅); font-size: 13px; }
+
+  /* 設定 */
+  dialog {
+    border: 0; border-radius: 16px; padding: 24px; width: min(560px, calc(100vw - 32px));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); color: var(--字);
+  }
+  dialog::backdrop { background: rgba(20, 30, 40, 0.45); }
+  dialog h2 { margin: 0 0 14px; }
+  dialog label { display: block; font-weight: 700; margin: 14px 0 6px; }
+  dialog input, dialog select {
+    width: 100%; font: inherit; padding: 9px 11px; border-radius: 10px; border: 1px solid #c4ced6;
+  }
+  dialog .說明 { color: var(--淡字); font-size: 14px; margin: 6px 0 0; line-height: 1.6; }
+  dialog .錯誤 { color: var(--紅); min-height: 1.4em; margin: 10px 0 0; }
+  dialog .按鈕列 { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+  dialog button { font: inherit; padding: 8px 18px; border-radius: 10px; border: 1px solid #c4ced6; background: white; cursor: pointer; }
+  dialog button.主要 { background: var(--字); color: white; border-color: var(--字); }
+
+  /* 山上的小人 */
+  .隊 .身 { transition: transform 0.3s; }
+  .隊.走 .人 { animation: 走路 0.36s ease-in-out infinite alternate; }
+  .隊.走 .人:nth-child(2n) { animation-delay: 0.18s; }
+  @keyframes 走路 { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  .隊.跳 .身 { animation: 跳 0.5s ease-out 3; }
+  @keyframes 跳 { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-22px); } }
+  .超車 { opacity: 0; transition: opacity 0.3s; }
+  .隊.跳 .超車 { opacity: 1; }
+  .隊.朝左 .臉 { transform: scaleX(-1); }
+  .皇冠 { display: none; }
+  .隊.第一 .皇冠 { display: inline; }
+  .問號 { display: none; }
+  .隊.讀不懂 .問號 { display: inline; animation: 晃 1.2s ease-in-out infinite; }
+  @keyframes 晃 { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+  .山頂光 { animation: 光 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes 光 { 0%, 100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 0.8; transform: scale(1.1); } }
+  .雲 { animation: 飄 60s linear infinite; }
+  .雲.慢 { animation-duration: 90s; }
+  @keyframes 飄 { from { transform: translateX(-300px); } to { transform: translateX(1500px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .雲, .山頂光, .隊.走 .人, .隊.跳 .身, .隊.讀不懂 .問號 { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="版面">
+  <main class="山區">
+    <div class="抬頭">
+      <h1 id="名稱">榜單</h1>
+      <p id="副標">按右上角 ⚙️ 貼上成績表的連結</p>
+    </div>
+    <svg id="山" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMax meet" aria-label="各組在山上的位置">
+      <defs>
+        <linearGradient id="山色" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#6f8fa6"/>
+          <stop offset="1" stop-color="#3f6b52"/>
+        </linearGradient>
+        <linearGradient id="遠山色" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#a9c4d6"/>
+          <stop offset="1" stop-color="#8fb3a0"/>
+        </linearGradient>
+        <radialGradient id="光暈">
+          <stop offset="0" stop-color="#fff6b0" stop-opacity="1"/>
+          <stop offset="1" stop-color="#fff6b0" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="1060" cy="110" r="52" fill="#ffe27a"/>
+      <g class="雲"><ellipse cx="0" cy="150" rx="70" ry="22" fill="#fff" opacity="0.85"/><ellipse cx="40" cy="135" rx="45" ry="22" fill="#fff" opacity="0.85"/></g>
+      <g class="雲 慢"><ellipse cx="-200" cy="250" rx="90" ry="24" fill="#fff" opacity="0.7"/><ellipse cx="-150" cy="232" rx="50" ry="22" fill="#fff" opacity="0.7"/></g>
+      <!-- 遠山 -->
+      <polygon points="700,760 960,250 1240,760" fill="url(#遠山色)"/>
+      <polygon points="-60,760 180,380 420,760" fill="url(#遠山色)"/>
+      <!-- 主峰 -->
+      <polygon points="40,760 600,100 1160,760" fill="url(#山色)"/>
+      <polygon points="600,100 520,194 556,182 584,206 612,180 646,204 676,190" fill="#f4f8fb"/>
+      <circle class="山頂光" cx="600" cy="110" r="70" fill="url(#光暈)"/>
+      <!-- 山頂的旗子 -->
+      <line x1="600" y1="100" x2="600" y2="40" stroke="#4a3a2a" stroke-width="4"/>
+      <polygon points="600,40 644,52 600,64" fill="#e0453a"/>
+      <!-- 步道：0 是起點，越往後越高 -->
+      <path id="步道" d="M 170 730 L 430 655 L 270 565 L 520 478 L 395 392 L 600 312 L 535 226 L 600 128"
+            fill="none" stroke="#e9d9b0" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 16" opacity="0.9"/>
+      <!-- 地面與營地 -->
+      <rect x="-200" y="752" width="1600" height="200" fill="#5d8f4e"/>
+      <rect x="-200" y="752" width="1600" height="10" fill="#6fa35c"/>
+      <g transform="translate(95 742)">
+        <polygon points="-46,0 0,-62 46,0" fill="#f29f4b"/>
+        <polygon points="-12,0 0,-34 12,0" fill="#7a4a1e"/>
+        <line x1="0" y1="-62" x2="0" y2="-74" stroke="#7a4a1e" stroke-width="3"/>
+      </g>
+      <text x="95" y="790" text-anchor="middle" font-size="18" fill="#fff" font-weight="700">營地</text>
+      <g id="隊伍"></g>
+    </svg>
+  </main>
+  <aside class="面板">
+    <div class="面板頭">
+      <h2 id="面板標題">名次</h2>
+      <button class="齒輪" id="開設定" title="設定成績表" aria-label="設定">⚙️</button>
+    </div>
+    <ol class="名次表" id="名次表"></ol>
+    <div class="狀態列">
+      <span class="燈" id="燈"></span>
+      <span id="更新時間">還沒讀到資料</span>
+    </div>
+    <div class="提示" id="提示"></div>
+  </aside>
+</div>
+
+<dialog id="設定">
+  <form method="dialog" id="設定表單">
+    <h2>成績表</h2>
+    <label for="連結">Google 試算表的連結</label>
+    <input id="連結" placeholder="https://docs.google.com/spreadsheets/d/…/edit" autocomplete="off">
+    <p class="說明">試算表要開「知道連結的人可以檢視」。第一欄組別，最後一欄成績，中間的欄都是組員。<br>
+      成績欄建議設成「格式 → 數值 → 純文字」，學生寫錯字時才看得到原文。</p>
+    <label for="方向選擇">成績</label>
+    <select id="方向選擇">
+      <option value="">看欄名自動判斷</option>
+      <option value="越小越好">越小越好（Loss、MSE）</option>
+      <option value="越大越好">越大越好（正確率）</option>
+    </select>
+    <label for="名稱輸入">榜單名稱（可不填）</label>
+    <input id="名稱輸入" placeholder="例如：高麗菜估價" autocomplete="off">
+    <p class="說明">設定會寫進網址，把網址加入書籤，下次直接打開。</p>
+    <p class="錯誤" id="設定錯誤"></p>
+    <div class="按鈕列">
+      <button type="button" id="取消">取消</button>
+      <button type="submit" class="主要">開始</button>
+    </div>
+  </form>
+</dialog>
+
+<script id="榜單邏輯">
+function 解析連結(連結) {
+  const 找到 = 連結.match(/docs\.google\.com\/spreadsheets\/d\/([\w-]+)/);
+  if (!找到) throw new Error("這不是 Google 試算表的連結。請到試算表按「共用」→「複製連結」再貼上。");
+  const gid = 連結.match(/[?#&]gid=(\d+)/);
+  return { id: 找到[1], gid: gid ? gid[1] : null };
+}
+
+function 讀資料網址(連結, 回呼名稱) {
+  const { id, gid } = 解析連結(連結);
+  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json;responseHandler:${回呼名稱}&headers=1`
+    + (gid ? `&gid=${gid}` : "");
+}
+
+function 格子文字(格) {
+  if (!格 || 格.v === null || 格.v === undefined) return "";
+  return String(格.f ?? 格.v).trim();
+}
+
+// 從學生填的文字裡抓出第一個數字：全形轉半形、拿掉千分位逗號、百分比換成小數
+function 讀成績(文字) {
+  const 整理 = 文字.normalize("NFKC").replace(/(\d),(?=\d)/g, "$1");
+  const 找到 = 整理.match(/([-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)\s*(%?)/i);
+  if (!找到) return null;
+  const 數 = Number(找到[1]);
+  if (!Number.isFinite(數)) return null;
+  return 找到[2] ? 數 / 100 : 數;
+}
+
+function 看欄名猜方向(欄名) {
+  if (/loss|mse|rmse|mae|error|誤差|損失/i.test(欄名)) return "越小越好";
+  if (/正確率|準確率|accuracy|acc\b|f1|r2|r²/i.test(欄名)) return "越大越好";
+  return null;
+}
+
+function 排出榜單(表格, 方向) {
+  // 第一欄是組別，最後一欄是成績，中間都是組員
+  const 欄數 = 表格.cols.length;
+  if (欄數 === 0) return { 標題: "", 方向: 方向 || "越小越好", 方向是預設的: !方向, 組: [] };
+  const 標題 = (表格.cols[欄數 - 1].label || "").trim();
+  const 組 = 表格.rows
+    .map((列) => Array.from({ length: 欄數 }, (_, i) => 格子文字((列.c || [])[i])))
+    .filter((文字) => 文字[0] !== "")
+    .map((文字) => {
+      const 成績原文 = 文字[欄數 - 1];
+      const 成績 = 讀成績(成績原文);
+      const 狀態 = 成績原文 === "" ? "未填" : 成績 === null ? "讀不懂" : "已填";
+      const 組員 = 文字.slice(1, 欄數 - 1).filter((名) => 名 !== "");
+      return { 組別: 文字[0], 組員, 成績原文, 成績, 狀態, 名次: null, 高度: null };
+    });
+  const 猜的 = 看欄名猜方向(標題);
+  const 方向是預設的 = !方向 && !猜的;
+  方向 = 方向 || 猜的 || "越小越好";
+  const 有成績 = 組.filter((g) => g.狀態 === "已填");
+  // 換成「越大越好」的分數再排，兩個方向共用同一套算法
+  const 分數 = (g) => (方向 === "越大越好" ? g.成績 : -g.成績);
+  const 全部 = 有成績.map(分數);
+  const 最好 = Math.max(...全部), 最差 = Math.min(...全部);
+  for (const g of 有成績) {
+    g.名次 = 1 + 有成績.filter((o) => 分數(o) > 分數(g)).length;
+    g.高度 = 最好 === 最差 ? 1 : (分數(g) - 最差) / (最好 - 最差);
+  }
+  // 沒名次的照試算表的順序排在最後
+  組.sort((a, b) => (a.名次 ?? Infinity) - (b.名次 ?? Infinity));
+  return { 標題, 方向, 方向是預設的, 組 };
+}
+</script>
+
+<script>
+const 刷新秒數 = 10;
+const 走路毫秒 = 1500;
+const 色票 = ["#e0453a", "#2f7fd8", "#f2a51a", "#2f9e5b", "#8b4fd1", "#e2669f", "#16a3a3", "#7a5230", "#5b6b7a", "#a3c428", "#d9622b", "#3b4bc8"];
+const SVG = "http://www.w3.org/2000/svg";
+const $ = (id) => document.getElementById(id);
+const 步道 = $("步道");
+const 步道長 = 步道.getTotalLength();
+
+// ---------- 設定（存在網址裡） ----------
+function 讀設定() {
+  const q = new URLSearchParams(location.search);
+  const id = q.get("sheet");
+  return {
+    連結: id ? `https://docs.google.com/spreadsheets/d/${id}/edit` + (q.get("gid") ? `#gid=${q.get("gid")}` : "") : "",
+    方向: ["越小越好", "越大越好"].includes(q.get("方向")) ? q.get("方向") : "",
+    名稱: q.get("名稱") || "",
+  };
+}
+
+function 寫設定({ 連結, 方向, 名稱 }) {
+  const { id, gid } = 解析連結(連結);
+  const q = new URLSearchParams();
+  q.set("sheet", id);
+  if (gid) q.set("gid", gid);
+  if (方向) q.set("方向", 方向);
+  if (名稱) q.set("名稱", 名稱);
+  history.replaceState(null, "", "?" + q.toString());
+}
+
+let 設定 = 讀設定();
+
+function 開設定() {
+  $("連結").value = 設定.連結;
+  $("方向選擇").value = 設定.方向;
+  $("名稱輸入").value = 設定.名稱;
+  $("設定錯誤").textContent = "";
+  $("設定").showModal();
+}
+
+$("開設定").addEventListener("click", 開設定);
+$("取消").addEventListener("click", () => $("設定").close());
+$("設定表單").addEventListener("submit", (e) => {
+  const 新 = { 連結: $("連結").value.trim(), 方向: $("方向選擇").value, 名稱: $("名稱輸入").value.trim() };
+  try {
+    解析連結(新.連結);
+  } catch (錯) {
+    e.preventDefault();
+    $("設定錯誤").textContent = 錯.message;
+    return;
+  }
+  寫設定(新);
+  設定 = 讀設定();
+  寫名稱();
+  for (const 隊 of 隊伍.values()) 隊.根.remove();
+  隊伍.clear();
+  組色.clear();
+  上次名次.clear();
+  第一次 = true;
+  讀一次();
+});
+
+// ---------- 讀成績表（JSONP，直接打開檔案也能讀） ----------
+let 序號 = 0;
+function 抓表格(連結) {
+  return new Promise((成功, 失敗) => {
+    const 名 = `__bangdan_cb${++序號}`; // Google 只接受英數字的回呼名稱，中文會被換成預設名稱
+    const 腳本 = document.createElement("script");
+    const 收尾 = () => { delete window[名]; 腳本.remove(); clearTimeout(計時); };
+    const 計時 = setTimeout(() => { 收尾(); 失敗(new Error("讀太久沒有回應")); }, 8000);
+    window[名] = (回應) => {
+      收尾();
+      if (回應.status === "ok") 成功(回應.table);
+      else 失敗(new Error((回應.errors || []).map((e) => e.detailed_message || e.message).join("；") || "試算表回傳錯誤"));
+    };
+    腳本.onerror = () => { 收尾(); 失敗(new Error("讀不到試算表，請確認已開「知道連結的人可以檢視」")); };
+    腳本.src = 讀資料網址(連結, 名) + `&_=${Date.now()}`;
+    document.head.appendChild(腳本);
+  });
+}
+
+let 讀取代號 = 0;
+async function 讀一次() {
+  if (!設定.連結) return;
+  const 這次 = ++讀取代號;
+  try {
+    const 表格 = await 抓表格(設定.連結);
+    if (這次 !== 讀取代號) return; // 換了成績表，舊的回應不要了
+    畫(排出榜單(表格, 設定.方向 || undefined));
+    $("燈").classList.remove("壞");
+    $("更新時間").textContent = "最後更新 " + new Date().toLocaleTimeString("zh-TW", { hour12: false });
+    $("提示").textContent = "";
+  } catch (錯) {
+    if (這次 !== 讀取代號) return;
+    $("燈").classList.add("壞");
+    $("提示").textContent = 錯.message;
+  }
+}
+
+// ---------- 畫畫面 ----------
+const 組色 = new Map();
+function 顏色(組別) {
+  if (!組色.has(組別)) 組色.set(組別, 色票[組色.size % 色票.length]);
+  return 組色.get(組別);
+}
+
+function 元素(標籤, 屬性 = {}, 父) {
+  const e = document.createElementNS(SVG, 標籤);
+  for (const [k, v] of Object.entries(屬性)) e.setAttribute(k, v);
+  if (父) 父.appendChild(e);
+  return e;
+}
+
+function 造一個人(父, x, 色, 名字) {
+  // 外層管位置和名字，內層 .人 會上下晃（走路）
+  const 位 = 元素("g", { transform: `translate(${x} 0)` }, 父);
+  const 名 = 元素("text", { y: 16, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#1d2b36", stroke: "#fff", "stroke-width": 3.5, "paint-order": "stroke" }, 位);
+  名.textContent = 名字;
+  const 人 = 元素("g", { class: "人" }, 位);
+  const 內 = 元素("g", { class: "臉" }, 人); // 朝左時整個人左右翻
+  元素("rect", { x: -11, y: -40, width: 9, height: 18, rx: 3, fill: "#6b4a2b" }, 內); // 背包
+  元素("line", { x1: -4, y1: -8, x2: -6, y2: 0, stroke: "#2b3540", "stroke-width": 4, "stroke-linecap": "round" }, 內);
+  元素("line", { x1: 4, y1: -8, x2: 6, y2: 0, stroke: "#2b3540", "stroke-width": 4, "stroke-linecap": "round" }, 內);
+  元素("rect", { x: -8, y: -32, width: 16, height: 25, rx: 6, fill: 色 }, 內);
+  元素("circle", { cx: 0, cy: -40, r: 8, fill: "#f6d2b0" }, 內);
+  元素("path", { d: "M -8 -42 Q 0 -54 8 -42 Z", fill: 色 }, 內); // 帽子
+  return 人;
+}
+
+const 隊伍 = new Map(); // 組別 → 這組在山上的圖和走路狀態（見 造隊伍）
+const 上次名次 = new Map();
+let 第一次 = true;
+
+function 造隊伍(g) {
+  const 色 = 顏色(g.組別);
+  const 根 = 元素("g", { class: "隊" }, $("隊伍"));
+  const 身 = 元素("g", { class: "身" }, 根);
+  const 人們 = 元素("g", { class: "人們" }, 身);
+  const 旗 = 元素("g", {}, 身);
+  元素("line", { x1: 0, y1: -40, x2: 0, y2: -84, stroke: "#4a3a2a", "stroke-width": 3 }, 旗);
+  元素("rect", { x: 0, y: -84, width: 34, height: 22, rx: 3, fill: 色 }, 旗);
+  const 組號 = 元素("text", { x: 17, y: -67, "text-anchor": "middle", "font-size": 16, "font-weight": 800, fill: "#fff" }, 旗);
+  組號.textContent = g.組別;
+  const 皇冠 = 元素("text", { class: "皇冠", x: 17, y: -90, "text-anchor": "middle", "font-size": 30 }, 旗);
+  皇冠.textContent = "👑";
+  const 問號 = 元素("text", { class: "問號", x: 0, y: -96, "text-anchor": "middle", "font-size": 34, "font-weight": 900, fill: "#e0453a" }, 身);
+  問號.textContent = "?";
+  const 超車 = 元素("text", { class: "超車", x: 0, y: -100, "text-anchor": "middle", "font-size": 22, "font-weight": 900, fill: "#e0453a", stroke: "#fff", "stroke-width": 5, "paint-order": "stroke" }, 身);
+  超車.textContent = "↑ 超車！";
+  const 隊 = { 根, 身, 人們, 旗, 色, 名單: null, 現在s: 0, 起s: 0, 目標s: 0, 起時: 0, 在營地: true, 營地點: { x: 0, y: 0 }, 偏移: 0, 面向: 1 };
+  隊伍.set(g.組別, 隊);
+  return 隊;
+}
+
+function 換組員(隊, 組員) {
+  const 名單 = 組員.join("、");
+  if (隊.名單 !== 名單) {
+    隊.名單 = 名單;
+    const 人數 = Math.max(1, 組員.length);
+    隊.人們.replaceChildren();
+    const 間距 = 40, 起 = -((人數 - 1) * 間距) / 2;
+    if (人數 > 1) {
+      // 繩子
+      const 點 = Array.from({ length: 人數 }, (_, i) => 起 + i * 間距);
+      const d = 點.slice(1).map((x, i) => `Q ${(點[i] + x) / 2} -10 ${x} -20`).join(" ");
+      元素("path", { d: `M ${點[0]} -20 ${d}`, fill: "none", stroke: "#c9a46a", "stroke-width": 2.5 }, 隊.人們);
+    }
+    for (let i = 0; i < 人數; i++) 造一個人(隊.人們, 起 + i * 間距, 隊.色, 組員[i] || "");
+    隊.旗.setAttribute("transform", `translate(${起 - 6} 0)`);
+  }
+}
+
+function 寫名稱() {
+  $("名稱").textContent = 設定.名稱 || "榜單";
+  document.title = 設定.名稱 ? `${設定.名稱}｜榜單` : "榜單";
+}
+
+function 畫(榜) {
+  寫名稱();
+  $("副標").textContent = `${榜.標題 || "成績"}（${榜.方向}${榜.方向是預設的 ? "，看不出方向，請到 ⚙️ 指定" : ""}）`;
+  $("面板標題").textContent = 榜.標題 || "名次";
+
+  // 名次表
+  const 列表 = $("名次表");
+  列表.replaceChildren();
+  for (const g of 榜.組) {
+    const li = document.createElement("li");
+    if (g.名次 === null) li.classList.add("沒名次");
+    if (g.狀態 === "讀不懂") li.classList.add("讀不懂");
+    const 名次 = document.createElement("span");
+    名次.className = "名次";
+    名次.textContent = g.名次 === 1 ? "🥇" : g.名次 === 2 ? "🥈" : g.名次 === 3 ? "🥉" : g.名次 ?? "–";
+    const 誰 = document.createElement("div");
+    誰.className = "誰";
+    const 組號 = document.createElement("div");
+    組號.className = "組號";
+    const 點 = document.createElement("span");
+    點.className = "點";
+    點.style.background = 顏色(g.組別);
+    組號.append(點, `第 ${g.組別} 組`);
+    const 組員 = document.createElement("div");
+    組員.className = "組員";
+    組員.textContent = g.組員.join("、") || "　";
+    誰.append(組號, 組員);
+    const 成績 = document.createElement("span");
+    成績.className = "成績";
+    成績.textContent = g.狀態 === "未填" ? "未填" : g.狀態 === "讀不懂" ? `? ${g.成績原文}` : 顯示數字(g.成績);
+    if (g.狀態 === "讀不懂") 成績.title = g.成績原文;
+    li.append(名次, 誰, 成績);
+    列表.appendChild(li);
+  }
+
+  // 山上的隊伍
+  const 現在 = performance.now();
+  const 還在 = new Set(榜.組.map((g) => g.組別));
+  for (const [組別, 隊] of 隊伍) if (!還在.has(組別)) { 隊.根.remove(); 隊伍.delete(組別); }
+
+  const 營地隊 = 榜.組.filter((g) => g.名次 === null);
+  營地隊.forEach((g, i) => {
+    const 隊 = 隊伍.get(g.組別) || 造隊伍(g);
+    隊.在營地 = true;
+    隊.營地點 = { x: 220 + i * 100, y: 828 };
+  });
+
+  // 太靠近的隊往旁邊挪，不要疊在一起
+  const 已放 = [];
+  for (const g of 榜.組.filter((g) => g.名次 !== null)) {
+    const 隊 = 隊伍.get(g.組別) || 造隊伍(g);
+    const s = g.高度 * 步道長;
+    const 剛出發 = 隊.在營地;
+    if (剛出發) { 隊.在營地 = false; 隊.現在s = 0; }
+    if (剛出發 || Math.abs(s - 隊.目標s) > 0.5) {
+      隊.起s = 隊.現在s; 隊.目標s = s; 隊.起時 = 現在;
+    }
+    const 點 = 步道.getPointAtLength(s);
+    const 擠 = 已放.filter((p) => Math.hypot(p.x - 點.x, p.y - 點.y) < 90).length;
+    隊.偏移 = 擠 === 0 ? 0 : (擠 % 2 ? 1 : -1) * Math.ceil(擠 / 2) * 100;
+    已放.push({ x: 點.x + 隊.偏移, y: 點.y });
+  }
+
+  for (const g of 榜.組) {
+    const 隊 = 隊伍.get(g.組別);
+    換組員(隊, g.組員);
+    隊.根.classList.toggle("第一", g.名次 === 1);
+    隊.根.classList.toggle("讀不懂", g.狀態 === "讀不懂");
+  }
+  // 超車：上次排在我前面的組，這次排到我後面了
+  if (!第一次) {
+    for (const g of 榜.組) {
+      if (g.名次 === null) continue;
+      const 我前 = 上次名次.get(g.組別);
+      if (我前 === undefined || 我前 === null) continue;
+      const 超過了 = 榜.組.some((o) => {
+        const 他前 = 上次名次.get(o.組別);
+        return o !== g && o.名次 !== null && 他前 != null && 他前 < 我前 && o.名次 > g.名次;
+      });
+      if (超過了) 跳一下(隊伍.get(g.組別));
+    }
+  }
+  上次名次.clear();
+  for (const g of 榜.組) 上次名次.set(g.組別, g.名次);
+  // 名次越前面的畫在越上層
+  [...榜.組].reverse().forEach((g) => $("隊伍").appendChild(隊伍.get(g.組別).根));
+  第一次 = false;
+}
+
+function 跳一下(隊) {
+  隊.根.classList.remove("跳");
+  void 隊.根.getBBox();
+  隊.根.classList.add("跳");
+  clearTimeout(隊.跳計時);
+  隊.跳計時 = setTimeout(() => 隊.根.classList.remove("跳"), 3000);
+}
+
+function 顯示數字(x) {
+  const 絕對 = Math.abs(x);
+  if (絕對 !== 0 && (絕對 >= 1e6 || 絕對 < 1e-3)) return x.toExponential(2);
+  return Number(x.toPrecision(5)).toLocaleString("zh-TW", { maximumFractionDigits: 4 });
+}
+
+// 沿著步道走：每一格畫面把各隊往目標推一點
+function 動畫(現在) {
+  for (const 隊 of 隊伍.values()) {
+    let x, y, 走 = false;
+    if (隊.在營地) {
+      ({ x, y } = 隊.營地點);
+    } else {
+      const t = Math.min(1, (現在 - 隊.起時) / 走路毫秒);
+      const 緩 = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+      const 前s = 隊.現在s;
+      隊.現在s = 隊.起s + (隊.目標s - 隊.起s) * 緩;
+      走 = t < 1 && Math.abs(隊.目標s - 隊.起s) > 1;
+      const 點 = 步道.getPointAtLength(隊.現在s);
+      const 前點 = 步道.getPointAtLength(前s);
+      if (Math.abs(點.x - 前點.x) > 0.3) 隊.面向 = 點.x > 前點.x ? 1 : -1;
+      x = 點.x + 隊.偏移; y = 點.y;
+    }
+    隊.根.classList.toggle("走", 走);
+    隊.根.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    隊.根.classList.toggle("朝左", 隊.面向 < 0);
+  }
+  requestAnimationFrame(動畫);
+}
+
+寫名稱();
+requestAnimationFrame(動畫);
+if (設定.連結) 讀一次(); else 開設定();
+setInterval(讀一次, 刷新秒數 * 1000);
+</script>
+</body>
+</html>
