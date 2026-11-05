@@ -352,18 +352,28 @@ function 讀成績(文字) {
 }
 
 function 看欄名猜方向(欄名) {
-  if (/loss|mse|rmse|mae|error|誤差|損失/i.test(欄名)) return "越小越好";
+  if (/loss|cost|mse|rmse|mae|error|誤差|損失|成本/i.test(欄名)) return "越小越好";
   if (/正確率|準確率|accuracy|acc\b|f1|r2|r²/i.test(欄名)) return "越大越好";
   return null;
 }
 
 function 排出榜單(表格, 方向) {
-  // 第一欄是組別，最後一欄是成績，中間都是組員
-  const 欄數 = 表格.cols.length;
+  // 第一欄是組別，成績欄之前都是組員。
+  let 欄名 = 表格.cols.map((欄) => (欄.label || "").trim());
+  let 列們 = 表格.rows.map((列) => 欄名.map((_, i) => 格子文字((列.c || [])[i])));
+  // 整張表都是文字時（例如成績欄設成純文字），Google 認不出表頭，會把表頭當成第一列資料
+  if (欄名.every((名) => 名 === "") && 列們.length > 0) [欄名, ...列們] = 列們;
+  // 成績欄：欄名看得出是成績的那一欄（測試成本、Loss、正確率⋯），看不出就用最後一個有東西的欄。
+  // 試算表右邊沒欄名、也沒填東西的空白欄不算；成績欄右邊的欄（備註之類）也不算組員。
+  const 有東西 = (i) => 欄名[i] !== "" || 列們.some((文字) => 文字[i] !== "");
+  const 像成績 = (名) => 看欄名猜方向(名) !== null || /成績|分數|score/i.test(名);
+  let 欄數 = 欄名.length;
+  while (欄數 > 0 && !有東西(欄數 - 1)) 欄數--;
+  for (let i = 欄數 - 1; i >= 1; i--) if (像成績(欄名[i])) { 欄數 = i + 1; break; }
   if (欄數 === 0) return { 標題: "", 方向: 方向 || "越小越好", 方向是預設的: !方向, 組: [] };
-  const 標題 = (表格.cols[欄數 - 1].label || "").trim();
-  const 組 = 表格.rows
-    .map((列) => Array.from({ length: 欄數 }, (_, i) => 格子文字((列.c || [])[i])))
+  const 標題 = 欄名[欄數 - 1];
+  const 組 = 列們
+    .map((文字) => 文字.slice(0, 欄數))
     .filter((文字) => 文字[0] !== "")
     .map((文字) => {
       const 成績原文 = 文字[欄數 - 1];
