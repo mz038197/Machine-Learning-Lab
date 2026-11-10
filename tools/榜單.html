@@ -4,15 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>榜單</title>
-<meta name="description" content="老師投影用的榜單，把各組畫成在山上爬的小人">
+<meta name="description" content="老師投影用的榜單，把各組畫成往終點前進的小人，可選山、大樓、深海等場景">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Noto+Sans+TC:wght@500;800&display=swap" rel="stylesheet">
-<script>{ const 風格 = new URLSearchParams(location.search).get("風格"); if (["白天", "夜晚", "日出"].includes(風格)) document.documentElement.dataset.theme = 風格; }</script>
+<script>{
+  const q = new URLSearchParams(location.search), 風格 = q.get("風格"), 場景 = q.get("場景");
+  if (["白天", "夜晚", "日出"].includes(風格)) document.documentElement.dataset.theme = 風格;
+  // 這裡在畫面出來前就要設好顏色，還讀不到 場景們；加場景時這份名單要跟著改（山是預設，不用列）
+  if (["大樓", "深海", "火箭", "棒球場", "攀岩牆", "巨樹", "火山", "金字塔"].includes(場景)) document.documentElement.dataset.scene = 場景;
+}</script>
 <!--
-  老師投影用的榜單。讀一張成績表（Google 試算表），把各組畫成在山上爬的小人。
-  直接用瀏覽器打開這個檔案就能用，按右上角的齒輪貼上成績表的連結，也可以選風格（白天、夜晚、日出）。
-  山和小人用 three.js 畫成立體的（要上網載入）；電腦跑不了 WebGL 時會自動改畫平面的山。
+  老師投影用的榜單。讀一張成績表（Google 試算表），把各組畫成沿著步道往終點前進的小人，越好走得越遠。
+  直接用瀏覽器打開這個檔案就能用，按右上角的齒輪貼上成績表的連結，也可以選場景（山、大樓、深海⋯）和風格（白天、夜晚、日出）。
+  場景和小人用 three.js 畫成立體的（要上網載入）；電腦跑不了 WebGL 時會自動改畫平面的場景。
   成績表：第一欄組別，最後一欄成績，中間都是組員。要開「知道連結的人可以檢視」。
   邏輯的測試：node --test "tools/tests/*.test.mjs"
 -->
@@ -109,6 +114,81 @@
   --d-cheek: oklch(76% 0.1 20); --d-scarf: oklch(97% 0.005 260); --d-metal: oklch(72% 0.01 260);
   --d-flag-ink: oklch(99% 0.005 260); --d-shadow: oklch(10% 0.005 260);
 }
+
+/* ---- 其他場景的顏色：平面和立體共用。白天是底，夜晚、日出只改需要改的 ---- */
+:root {
+  /* 大樓 */
+  --b-wall: oklch(72% 0.02 250); --b-wall-dark: oklch(55% 0.025 250); --b-window: oklch(80% 0.06 230); --b-lit: oklch(93% 0.05 220);
+  --b-frame: oklch(42% 0.03 30); --b-roof: oklch(48% 0.015 250); --b-far: oklch(80% 0.03 240); --b-street: oklch(62% 0.01 250);
+  --b-mark: oklch(97% 0.01 90); --b-beacon: oklch(62% 0.22 28);
+  /* 深海 */
+  --s-rock: oklch(46% 0.05 220); --s-rock-dark: oklch(34% 0.05 225); --s-sand: oklch(70% 0.05 85); --s-coral: oklch(68% 0.16 25);
+  --s-coral-2: oklch(72% 0.14 330); --s-weed: oklch(52% 0.11 150); --s-hull: oklch(52% 0.17 28); --s-deck: oklch(70% 0.06 70);
+  --s-glow: oklch(88% 0.15 90); --s-bubble: oklch(97% 0.02 220); --s-ray: oklch(97% 0.04 200); --s-fish: oklch(78% 0.15 70);
+  --s-jelly: oklch(80% 0.12 320); --s-surface: oklch(88% 0.06 210);
+  /* 火箭 */
+  --r-ground: oklch(70% 0.03 140); --r-pad: oklch(66% 0.01 250); --r-tower: oklch(56% 0.17 35); --r-body: oklch(96% 0.005 250);
+  --r-trim: oklch(55% 0.2 28); --r-moon: oklch(92% 0.02 90); --r-moon-dark: oklch(78% 0.02 90); --r-flame: oklch(82% 0.17 65);
+  --r-planet: oklch(72% 0.12 50); --r-ring: oklch(86% 0.06 80);
+  /* 棒球場 */
+  --q-grass: oklch(62% 0.14 145); --q-grass-2: oklch(57% 0.14 145); --q-dirt: oklch(66% 0.08 55); --q-line: oklch(98% 0.005 90);
+  --q-wall: oklch(42% 0.08 160); --q-stand: oklch(55% 0.1 255); --q-stand-2: oklch(48% 0.09 255); --q-light: oklch(97% 0.04 95);
+  --q-pole: oklch(62% 0.01 250);
+  /* 攀岩牆 */
+  --c-wall: oklch(80% 0.03 75); --c-wall-2: oklch(72% 0.04 70); --c-frame: oklch(45% 0.02 250); --c-hold-1: oklch(64% 0.2 28);
+  --c-hold-2: oklch(84% 0.16 95); --c-hold-3: oklch(60% 0.15 250); --c-hold-4: oklch(66% 0.17 150); --c-mat: oklch(48% 0.12 260);
+  --c-floor: oklch(72% 0.1 140); --c-rope: oklch(70% 0.14 50); --c-bush: oklch(52% 0.12 145);
+  /* 巨樹 */
+  --t-bark: oklch(48% 0.06 55); --t-bark-dark: oklch(36% 0.05 50); --t-leaf: oklch(62% 0.15 140); --t-leaf-2: oklch(54% 0.14 150);
+  --t-wood: oklch(64% 0.08 65); --t-roof: oklch(52% 0.15 30); --t-ground: oklch(68% 0.13 135); --t-flower: oklch(85% 0.14 95);
+  /* 火山 */
+  --v-rock: oklch(38% 0.02 30); --v-rock-dark: oklch(27% 0.02 30); --v-lava: oklch(70% 0.2 45); --v-lava-dark: oklch(55% 0.2 33);
+  --v-smoke: oklch(62% 0.01 40); --v-ground: oklch(42% 0.02 40); --v-far: oklch(52% 0.03 30); --v-ember: oklch(80% 0.18 60);
+  /* 金字塔 */
+  --p-stone: oklch(80% 0.08 80); --p-stone-dark: oklch(68% 0.08 70); --p-gold: oklch(84% 0.16 88); --p-sand: oklch(86% 0.08 85);
+  --p-sand-2: oklch(80% 0.09 75); --p-palm: oklch(55% 0.13 145); --p-trunk: oklch(50% 0.07 60); --p-water: oklch(68% 0.12 220);
+  --p-far: oklch(82% 0.06 75);
+}
+:root[data-theme="夜晚"] {
+  --b-wall: oklch(36% 0.02 260); --b-wall-dark: oklch(26% 0.02 260); --b-window: oklch(30% 0.03 260); --b-lit: oklch(88% 0.13 85);
+  --b-far: oklch(26% 0.025 260); --b-street: oklch(30% 0.01 260);
+  --s-rock: oklch(28% 0.04 240); --s-rock-dark: oklch(20% 0.04 245); --s-sand: oklch(40% 0.04 230); --s-glow: oklch(90% 0.16 180);
+  --s-jelly: oklch(78% 0.17 300); --s-ray: oklch(60% 0.06 230); --s-surface: oklch(40% 0.05 240);
+  --r-ground: oklch(34% 0.03 150); --r-moon: oklch(94% 0.02 90);
+  --q-grass: oklch(48% 0.12 150); --q-grass-2: oklch(44% 0.12 150); --q-dirt: oklch(50% 0.07 50); --q-stand: oklch(36% 0.07 260); --q-stand-2: oklch(30% 0.06 260);
+  --c-floor: oklch(40% 0.06 150); --c-bush: oklch(32% 0.07 160);
+  --t-leaf: oklch(42% 0.1 150); --t-leaf-2: oklch(36% 0.09 160); --t-ground: oklch(38% 0.08 145); --t-flower: oklch(92% 0.17 110);
+  --v-rock: oklch(26% 0.02 30); --v-rock-dark: oklch(18% 0.02 30); --v-ground: oklch(26% 0.02 40); --v-far: oklch(30% 0.03 30); --v-smoke: oklch(40% 0.02 30);
+  --p-sand: oklch(52% 0.05 260); --p-sand-2: oklch(46% 0.05 260); --p-stone: oklch(60% 0.05 260); --p-stone-dark: oklch(48% 0.05 260); --p-far: oklch(38% 0.04 260);
+}
+:root[data-theme="日出"] {
+  --b-window: oklch(84% 0.08 60); --b-lit: oklch(92% 0.1 75); --b-far: oklch(78% 0.06 50);
+  --s-surface: oklch(88% 0.08 70); --s-ray: oklch(95% 0.08 70);
+  --p-sand: oklch(84% 0.1 60); --p-sand-2: oklch(78% 0.11 50); --p-stone: oklch(78% 0.1 55);
+}
+/* 每個場景的天空和環境光（--sky 是平面版，--d-sky 是立體版） */
+:root[data-scene="大樓"] { --sky: oklch(86% 0.05 235); }
+:root[data-scene="大樓"][data-theme="夜晚"] { --sky: oklch(20% 0.04 270); --d-sky: linear-gradient(oklch(12% 0.04 275), oklch(30% 0.07 300)); }
+:root[data-scene="大樓"][data-theme="日出"] { --sky: oklch(88% 0.06 60); }
+:root[data-scene="深海"] {
+  --sky: linear-gradient(oklch(78% 0.09 205), oklch(52% 0.11 230) 45%, oklch(28% 0.08 250)); --d-sky: linear-gradient(oklch(78% 0.09 205), oklch(52% 0.11 230) 45%, oklch(28% 0.08 250));
+  --d-hemi-sky: oklch(85% 0.08 200); --d-hemi-ground: oklch(35% 0.08 245); --d-sunlight: oklch(92% 0.06 200);
+}
+:root[data-scene="深海"][data-theme="夜晚"] {
+  --sky: oklch(16% 0.04 250); --d-sky: linear-gradient(oklch(26% 0.05 235), oklch(14% 0.04 250) 50%, oklch(8% 0.02 260));
+  --d-hemi-sky: oklch(45% 0.08 220); --d-hemi-ground: oklch(12% 0.03 260); --d-sunlight: oklch(60% 0.06 220);
+}
+:root[data-scene="深海"][data-theme="日出"] {
+  --sky: linear-gradient(oklch(84% 0.08 70), oklch(60% 0.09 215) 40%, oklch(30% 0.08 250)); --d-sky: linear-gradient(oklch(84% 0.08 70), oklch(60% 0.09 215) 40%, oklch(30% 0.08 250));
+}
+:root[data-scene="火箭"] { --d-sky: linear-gradient(oklch(48% 0.12 265), oklch(72% 0.1 245) 55%, oklch(90% 0.04 230)); --sky: oklch(72% 0.09 245); }
+:root[data-scene="火箭"][data-theme="夜晚"] { --d-sky: linear-gradient(oklch(8% 0.02 280), oklch(16% 0.04 270) 60%, oklch(30% 0.06 260)); --sky: oklch(14% 0.03 270); }
+:root[data-scene="火箭"][data-theme="日出"] { --d-sky: linear-gradient(oklch(45% 0.1 290), oklch(70% 0.12 40) 60%, oklch(90% 0.07 80)); --sky: oklch(76% 0.09 50); }
+:root[data-scene="棒球場"][data-theme="夜晚"] { --d-sky: linear-gradient(oklch(12% 0.03 265), oklch(24% 0.05 262)); }
+:root[data-scene="火山"] { --sky: oklch(76% 0.06 50); --d-sky: linear-gradient(oklch(62% 0.08 40), oklch(84% 0.06 70)); --d-sunlight: oklch(92% 0.07 60); }
+:root[data-scene="火山"][data-theme="夜晚"] { --sky: oklch(18% 0.04 20); --d-sky: linear-gradient(oklch(10% 0.02 20), oklch(26% 0.07 30)); }
+:root[data-scene="火山"][data-theme="日出"] { --d-sky: linear-gradient(oklch(58% 0.12 30), oklch(86% 0.08 75)); }
+:root[data-scene="金字塔"] { --sky: oklch(86% 0.06 220); --d-sky: linear-gradient(oklch(72% 0.1 235), oklch(93% 0.05 85)); --d-sunlight: oklch(98% 0.05 85); }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow-x: clip; overflow-y: clip; }
@@ -235,7 +315,7 @@ dialog button:disabled { opacity: 0.5; cursor: not-allowed; }
       <h1 id="名稱">榜單</h1>
       <p id="副標">按右上角的齒輪，貼上成績表的連結</p>
     </div>
-    <svg id="山" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMax meet" aria-label="各組在山上的位置">
+    <svg id="山" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMax meet" aria-label="各組在場景裡的位置">
       <defs>
         <linearGradient id="山色" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" class="山色上"/>
@@ -250,31 +330,11 @@ dialog button:disabled { opacity: 0.5; cursor: not-allowed; }
           <stop offset="1" class="光暈邊"/>
         </radialGradient>
       </defs>
-      <circle class="太陽" cx="1060" cy="110" r="52"/>
-      <g class="雲"><ellipse cx="0" cy="150" rx="70" ry="22" opacity="0.85"/><ellipse cx="40" cy="135" rx="45" ry="22" opacity="0.85"/></g>
-      <g class="雲 慢"><ellipse cx="-200" cy="250" rx="90" ry="24" opacity="0.7"/><ellipse cx="-150" cy="232" rx="50" ry="22" opacity="0.7"/></g>
-      <!-- 遠山 -->
-      <polygon points="700,760 960,250 1240,760" fill="url(#遠山色)"/>
-      <polygon points="-60,760 180,380 420,760" fill="url(#遠山色)"/>
-      <!-- 主峰 -->
-      <polygon points="40,760 600,100 1160,760" fill="url(#山色)"/>
-      <polygon points="600,100 520,194 556,182 584,206 612,180 646,204 676,190" class="雪頂"/>
-      <circle class="山頂光" cx="600" cy="110" r="70" fill="url(#光暈)"/>
-      <!-- 山頂的旗子 -->
-      <line x1="600" y1="100" x2="600" y2="40" class="頂旗桿" stroke-width="4"/>
-      <polygon class="頂旗" points="600,40 644,52 600,64"/>
-      <!-- 步道：0 是起點，越往後越高 -->
-      <path id="步道" d="M 170 730 L 430 655 L 270 565 L 520 478 L 395 392 L 600 312 L 535 226 L 600 128"
-            fill="none" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 16" opacity="0.9"/>
-      <!-- 地面與營地 -->
-      <rect x="-200" y="752" width="1600" height="200" class="地面"/>
-      <rect x="-200" y="752" width="1600" height="4" class="地面邊"/>
-      <g transform="translate(95 742)">
-        <polygon class="帳篷" points="-46,0 0,-62 46,0"/>
-        <polygon class="帳篷門" points="-12,0 0,-34 12,0"/>
-        <line x1="0" y1="-62" x2="0" y2="-74" class="帳篷桿" stroke-width="3"/>
-      </g>
-      <text class="營地字" x="95" y="794" text-anchor="middle">營地</text>
+      <!-- 平面的布景由程式依場景畫進來（見 平面布景） -->
+      <g id="布景"></g>
+      <!-- 步道：0 是起點，越往後成績越好；d 由程式依場景填 -->
+      <path id="步道" fill="none" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 16" opacity="0.9"/>
+      <text class="營地字" id="營地字" text-anchor="middle"></text>
       <g id="隊伍"></g>
     </svg>
   </main>
@@ -305,11 +365,13 @@ dialog button:disabled { opacity: 0.5; cursor: not-allowed; }
       <option value="越小越好">越小越好（Loss、MSE）</option>
       <option value="越大越好">越大越好（正確率）</option>
     </select>
+    <label for="場景選擇">場景</label>
+    <select id="場景選擇"></select>
     <label for="風格選擇">風格</label>
     <select id="風格選擇">
-      <option value="白天">白天（藍天、白雪）</option>
+      <option value="白天">白天</option>
       <option value="夜晚">夜晚（深色底，成績最大）</option>
-      <option value="日出">日出（暖色，不下雪）</option>
+      <option value="日出">日出（暖色）</option>
     </select>
     <label for="名稱輸入">榜單名稱（可不填）</label>
     <input id="名稱輸入" placeholder="例如：高麗菜估價" autocomplete="off">
@@ -398,26 +460,174 @@ function 排出榜單(表格, 方向) {
   組.sort((a, b) => (a.名次 ?? Infinity) - (b.名次 ?? Infinity));
   return { 標題, 方向, 方向是預設的, 組 };
 }
+
+// ---------- 場景 ----------
+// 座標都是 SVG 的 viewBox（0 0 1200 860）。步道從起點（最後一名）走到終點（第一名）。
+// 範圍(y)：小人在這個高度能站的左右邊界。營地：沒名次的組排成一排的地方。
+function 三角範圍(頂y, 底y, 底半寬) {
+  return (y) => { const 半 = Math.max(0, (y - 頂y) / (底y - 頂y)) * 底半寬 * 0.9; return [600 - 半, 600 + 半]; };
+}
+const 山的步道 = [[170, 730], [430, 655], [270, 565], [520, 478], [395, 392], [600, 312], [535, 226], [600, 128]];
+const 地面營地 = (字) => ({ 字, 左: 260, 右: 1150, y: 814 });
+var 場景們 = {
+  山: { 說明: "雪山，越好爬得越高", 步道: 山的步道, 範圍: 三角範圍(100, 760, 560), 營地: 地面營地("營地") },
+  大樓: {
+    說明: "摩天大樓，沿逃生梯爬上頂樓停機坪",
+    步道: [...Array.from({ length: 10 }, (_, i) => [i % 2 ? 800 : 400, 740 - i * 60]), [600, 130]],
+    範圍: (y) => (y >= 125 ? [380, 820] : [600, 600]),
+    營地: 地面營地("大廳"),
+  },
+  深海: {
+    說明: "深海探險，越好潛得越深",
+    步道: [[800, 220], [330, 320], [860, 420], [390, 520], [780, 600], [520, 675], [600, 742]],
+    // 海溝越深越窄：海面附近左右各 560，海底剩 140
+    範圍: (y) => { const 半 = 140 + ((760 - Math.min(760, Math.max(200, y))) / 560) * 420; return [600 - 半, 600 + 半]; },
+    營地: { 字: "船上", 左: 150, 右: 580, y: 140 },
+  },
+  火箭: {
+    說明: "火箭升空，越好飛得越高",
+    步道: [[600, 735], [520, 620], [680, 500], [540, 380], [700, 270], [860, 170]],
+    範圍: () => [60, 1140],
+    營地: 地面營地("發射台"),
+  },
+  棒球場: {
+    說明: "棒球場，跑完一圈回本壘得分",
+    步道: [[860, 690], [600, 680], [960, 480], [600, 290], [240, 480], [600, 680]],
+    範圍: () => [40, 1160],
+    營地: 地面營地("休息區"),
+  },
+  攀岩牆: {
+    說明: "攀岩牆，越好攀得越高",
+    步道: [[600, 740], [470, 640], [720, 540], [480, 430], [700, 320], [530, 215], [600, 120]],
+    範圍: (y) => (y >= 100 ? [320, 880] : [600, 600]),
+    營地: 地面營地("軟墊"),
+  },
+  巨樹: {
+    說明: "巨樹，沿樹枝爬上樹屋",
+    步道: [[420, 740], [760, 650], [440, 560], [760, 470], [450, 380], [740, 290], [600, 170]],
+    範圍: (y) => (y < 260 ? [320, 880] : [380, 820]),
+    營地: 地面營地("樹下"),
+  },
+  火山: { 說明: "火山，越好爬得越接近火山口", 步道: 山的步道, 範圍: 三角範圍(100, 760, 560), 營地: 地面營地("營地") },
+  金字塔: {
+    說明: "金字塔，沿台階爬上塔頂",
+    步道: [[210, 740], [950, 690], [290, 620], [860, 560], [380, 490], [780, 420], [460, 350], [700, 280], [560, 215], [600, 150]],
+    範圍: 三角範圍(140, 760, 540),
+    營地: 地面營地("綠洲"),
+  },
+};
+
+// 沿著步道走 s 那麼長，在哪一點。s 超過總長就停在終點，回傳的 s 是實際走了多長
+function 走步道(場景, s) {
+  const 點們 = 場景.步道;
+  if (!場景.累積) {
+    場景.累積 = [0];
+    for (let i = 1; i < 點們.length; i++) 場景.累積.push(場景.累積[i - 1] + Math.hypot(點們[i][0] - 點們[i - 1][0], 點們[i][1] - 點們[i - 1][1]));
+  }
+  const 累積 = 場景.累積, 長 = 累積[累積.length - 1];
+  s = Math.min(長, Math.max(0, s));
+  let i = 1;
+  while (i < 點們.length - 1 && 累積[i] < s) i++;
+  const 段 = 累積[i] - 累積[i - 1], t = 段 > 0 ? (s - 累積[i - 1]) / 段 : 0;
+  const [x0, y0] = 點們[i - 1], [x1, y1] = 點們[i];
+  return { x: x0 + (x1 - x0) * t, y: y0 + (y1 - y0) * t, s };
+}
+
+// ---------- 排開擠在一起的組 ----------
+const 隊距 = 16; // 並排的組之間留多寬
+const 旗高 = 88, 名字深 = 40; // 一組從旗子頂到腳多高、腳下兩行名字多深
+const 同排距 = 128; // 步道上離這麼近的組，先試著並排
+const 縮放們 = [1, 0.85, 0.7, 0.6]; // 擠的時候依序試著縮小到這些大小
+const 退一步 = 4;
+const 挪們 = [0, ...Array.from({ length: 10 }, (_, i) => [(i + 1) * 40, -(i + 1) * 40]).flat()]; // 步道上有人擋著，先試著往旁邊挪，再往回退
+
+// 上場：每組 { 寬, s }（s 是照成績該走到步道的哪裡）。回傳同樣順序的 { s, x, y, 縮放 }：
+// 這組實際停在步道的 s，再往旁邊挪到 x。
+// 從第一名開始放：成績和上一排很接近就併成一排；不然自己一排。放不下、或疊到別排，就先往旁邊挪、
+// 再沿步道往起點退，還不行就縮小一點再找。退到起點都沒空位，才併進最後一排、縮小到放得下。
+function 排開(上場, 場景) {
+  const 排們 = [];
+  const 量 = (排) => {
+    const p = 走步道(場景, 排.s), [左, 右] = 場景.範圍(p.y);
+    const 實寬 = 排.寬 * 排.縮放;
+    const x = p.x + (排.挪 || 0);
+    const 中 = 左 + 實寬 / 2 <= 右 - 實寬 / 2 ? Math.min(右 - 實寬 / 2, Math.max(左 + 實寬 / 2, x)) : (左 + 右) / 2;
+    排.框 = { 左: 中 - 實寬 / 2, 右: 中 + 實寬 / 2, 上: p.y - 旗高 * 排.縮放, 下: p.y + 名字深 * 排.縮放, y: p.y };
+    排.放得下 = 實寬 <= 右 - 左 + 0.01;
+    return 排;
+  };
+  const 撞到 = (排, 除外) => 排們.some((o) => o !== 除外 && o.框.左 < 排.框.右 + 隊距 && 排.框.左 < o.框.右 + 隊距 && o.框.上 < 排.框.下 && 排.框.上 < o.框.下);
+  // 從 原s 往起點退（每個位置也試著往旁邊挪），找第一個放得下、也不疊到別排的地方；
+  // 原尺寸找不到，就縮小一點再找一次。找到就回傳 true
+  const 找位置 = (排) => {
+    for (const 縮放 of 縮放們) {
+      排.縮放 = 縮放;
+      for (排.s = 排.原s; ; 排.s = Math.max(0, 排.s - 退一步)) {
+        for (排.挪 of 挪們) if (量(排).放得下 && !撞到(排, 排)) return true;
+        if (排.s === 0) break;
+      }
+    }
+    return false;
+  };
+  const 安置 = (排) => {
+    if (找位置(排)) return;
+    // 怎樣都找不到空位：停在起點，縮小到放得下（可能會和別排疊到一點）
+    排.s = 0;
+    排.縮放 = 1;
+    排.挪 = 0;
+    const [左, 右] = 場景.範圍(量(排).框.y);
+    排.縮放 = Math.min(1, (右 - 左) / 排.寬);
+    量(排);
+  };
+
+  const 順序 = 上場.map((u, i) => ({ ...u, i })).sort((a, b) => b.s - a.s);
+  for (const 一個 of 順序) {
+    const 上 = 排們[排們.length - 1];
+    const 起s = 上 ? Math.min(一個.s, 上.s) : 一個.s; // 不超過分數比它好的那一排，也不超過自己的成績
+    // 成績和上一排很接近（例如同分擠在窄的山頂）：併成一排，整排一起往回找放得下的地方
+    if (上 && 上.原s - 一個.s < 同排距) {
+      const 原 = { 原s: 上.原s, s: 上.s, 寬: 上.寬, 縮放: 上.縮放, 挪: 上.挪, 框: 上.框, 放得下: 上.放得下 };
+      上.寬 += 隊距 + 一個.寬;
+      上.原s = 起s;
+      if (找位置(上)) { 上.組.push(一個); continue; }
+      Object.assign(上, 原);
+    }
+    const 排 = { 原s: 起s, s: 起s, 寬: 一個.寬, 縮放: 1, 組: [一個] };
+    if (找位置(排)) { 排們.push(排); continue; }
+    if (上) {
+      // 退到起點都沒有空位（起點附近太擠）：併進離起點最近的那一排，停在起點、縮小到放得下
+      上.組.push(一個);
+      上.寬 += 隊距 + 一個.寬;
+      上.原s = 起s;
+      安置(上);
+      continue;
+    }
+    安置(排);
+    排們.push(排);
+  }
+
+  const 結果 = [];
+  for (const 排 of 排們) {
+    let x = 排.框.左;
+    for (const 一個 of 排.組) {
+      const 寬 = 一個.寬 * 排.縮放;
+      結果[一個.i] = { s: 排.s, x: x + 寬 / 2, y: 排.框.y, 縮放: 排.縮放 };
+      x += 寬 + 隊距 * 排.縮放;
+    }
+  }
+  return 結果;
+}
 </script>
 
 <script>
 const 刷新秒數 = 10;
 const 走路毫秒 = 1500;
 const 靠近比例 = 0.12; // 每格畫面往目標靠近多少
-const 隊距 = 16; // 並排的組之間留多寬
 const 名字第二行y = 36; // 名字錯開兩行，第二行在腳下多低
-const 一排高 = 128; // 小人從旗子頂到第二行名字底大約多高
-const 最小縮放 = 0.6;
-const 可站比例 = 0.9; // 小人只站在山寬的九成以內，不要站到山的邊緣外面
-const 最低排y = 730; // 一排一排往下排，最低排到步道起點的高度
-const 山中心x = 600;
-const 營地左 = 260, 營地可用寬 = 1150 - 營地左; // 從步道起點右邊開始排，不要和最後一名疊在一起
 const 色票 = ["#e0453a", "#2f7fd8", "#f2a51a", "#2f9e5b", "#8b4fd1", "#e2669f", "#16a3a3", "#7a5230", "#5b6b7a", "#a3c428", "#d9622b", "#3b4bc8"];
 const SVG = "http://www.w3.org/2000/svg";
 const 風格們 = ["白天", "夜晚", "日出"];
 const $ = (id) => document.getElementById(id);
-const 步道 = $("步道");
-const 步道長 = 步道.getTotalLength();
 
 // ---------- 設定（存在網址裡） ----------
 function 讀設定() {
@@ -428,27 +638,128 @@ function 讀設定() {
     方向: ["越小越好", "越大越好"].includes(q.get("方向")) ? q.get("方向") : "",
     名稱: q.get("名稱") || "",
     風格: 風格們.includes(q.get("風格")) ? q.get("風格") : "白天",
+    場景: Object.hasOwn(場景們, q.get("場景")) ? q.get("場景") : "山",
   };
 }
 
-function 寫設定({ 連結, 方向, 名稱, 風格 }) {
+function 寫設定({ 連結, 方向, 名稱, 風格, 場景 }) {
   const { id, gid } = 解析連結(連結);
   const q = new URLSearchParams();
   q.set("sheet", id);
   if (gid) q.set("gid", gid);
   if (方向) q.set("方向", 方向);
   if (名稱) q.set("名稱", 名稱);
+  if (場景 !== "山") q.set("場景", 場景);
   if (風格 !== "白天") q.set("風格", 風格);
   history.replaceState(null, "", "?" + q.toString());
 }
 
 let 設定 = 讀設定();
+// 場景在開頁時就定了（平面和立體的布景都照它畫），換場景要重新載入頁面
+const 場景 = 場景們[設定.場景];
+const 步道長 = 走步道(場景, Infinity).s;
+for (const [名, { 說明 }] of Object.entries(場景們)) $("場景選擇").add(new Option(`${名}（${說明}）`, 名));
+
+// ---------- 平面布景（跑不了 WebGL 時看到的；有 3D 時藏起來） ----------
+const 填 = (名) => `style="fill:var(${名})"`;
+const 描 = (名, 寬 = 4) => `style="fill:none;stroke:var(${名});stroke-width:${寬}"`;
+const 地面線 = `<rect x="-200" y="752" width="1600" height="200" class="地面"/><rect x="-200" y="752" width="1600" height="4" class="地面邊"/>`;
+const 山的平面 = (雪) => `
+  <circle class="太陽" cx="1060" cy="110" r="52"/>
+  <g class="雲"><ellipse cx="0" cy="150" rx="70" ry="22" opacity="0.85"/><ellipse cx="40" cy="135" rx="45" ry="22" opacity="0.85"/></g>
+  <g class="雲 慢"><ellipse cx="-200" cy="250" rx="90" ry="24" opacity="0.7"/><ellipse cx="-150" cy="232" rx="50" ry="22" opacity="0.7"/></g>
+  <polygon points="700,760 960,250 1240,760" fill="url(#遠山色)"/>
+  <polygon points="-60,760 180,380 420,760" fill="url(#遠山色)"/>
+  <polygon points="40,760 600,100 1160,760" fill="url(#山色)"/>
+  ${雪}`;
+const 平面布景們 = {
+  山: () => 山的平面(`<polygon points="600,100 520,194 556,182 584,206 612,180 646,204 676,190" class="雪頂"/>
+    <circle class="山頂光" cx="600" cy="110" r="70" fill="url(#光暈)"/>
+    <line x1="600" y1="100" x2="600" y2="40" class="頂旗桿" stroke-width="4"/><polygon class="頂旗" points="600,40 644,52 600,64"/>`)
+    + 地面線 + `<g transform="translate(95 742)"><polygon class="帳篷" points="-46,0 0,-62 46,0"/><polygon class="帳篷門" points="-12,0 0,-34 12,0"/></g>`,
+  火山: () => `<circle class="太陽" cx="1060" cy="110" r="52"/>
+    <polygon points="700,760 960,250 1240,760" ${填("--v-far")}/><polygon points="-60,760 180,380 420,760" ${填("--v-far")}/>
+    <polygon points="40,760 560,110 640,110 1160,760" ${填("--v-rock")}/>
+    <polygon points="560,110 640,110 660,170 610,150 580,200 548,160" ${填("--v-lava")}/>
+    <path d="M 610 150 Q 640 300 700 420 Q 720 470 760 520" ${描("--v-lava", 10)}/>
+    <g opacity="0.7">${[[600, 70, 40], [640, 30, 50], [570, 0, 60]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" ${填("--v-smoke")}/>`).join("")}</g>
+    <rect x="-200" y="752" width="1600" height="200" ${填("--v-ground")}/>`,
+  大樓: () => {
+    let 窗 = "";
+    for (let 層 = 0; 層 < 10; 層++) for (let 列 = 0; 列 < 8; 列++)
+      窗 += `<rect x="${362 + 列 * 62}" y="${178 + 層 * 60}" width="40" height="34" ${填((層 * 7 + 列 * 3) % 5 ? "--b-window" : "--b-lit")}/>`;
+    const 梯 = 場景們.大樓.步道.map(([x, y]) => `${x},${y}`).join(" ");
+    return `${[[60, 380, 150], [210, 300, 120], [900, 260, 140], [1050, 420, 160]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="${760 - y}" ${填("--b-far")}/>`).join("")}
+      <rect x="340" y="130" width="520" height="630" ${填("--b-wall")}/>${窗}
+      <rect x="330" y="118" width="540" height="16" ${填("--b-roof")}/>
+      <ellipse cx="600" cy="126" rx="90" ry="10" ${填("--b-mark")}/>
+      <line x1="800" y1="118" x2="800" y2="60" ${描("--b-frame", 4)}/><circle cx="800" cy="58" r="7" ${填("--b-beacon")}/>
+      <polyline points="${梯}" ${描("--b-frame", 8)}/>
+      <rect x="-200" y="752" width="1600" height="200" ${填("--b-street")}/>`;
+  },
+  深海: () => {
+    const 半 = (y) => 600 - 場景們.深海.範圍(y)[0];
+    const 邊 = [200, 300, 400, 500, 600, 700, 760];
+    return `<rect x="-200" y="-100" width="1600" height="250" ${填("--s-surface")} opacity="0.5"/>
+      <polygon points="-200,200 ${邊.map((y) => `${600 - 半(y) - 30},${y}`).join(" ")} -200,860" ${填("--s-rock")}/>
+      <polygon points="1400,200 ${邊.map((y) => `${600 + 半(y) + 30},${y}`).join(" ")} 1400,860" ${填("--s-rock")}/>
+      <rect x="-200" y="760" width="1600" height="200" ${填("--s-sand")}/>
+      <rect x="560" y="718" width="80" height="44" rx="6" ${填("--s-hull")}/><rect x="560" y="712" width="80" height="14" ${填("--s-glow")}/>
+      <polygon points="30,140 590,140 540,196 80,196" ${填("--s-hull")}/><rect x="30" y="128" width="560" height="14" ${填("--s-deck")}/>
+      <line x1="800" y1="150" x2="800" y2="220" ${描("--s-deck", 3)}/><circle cx="800" cy="150" r="12" ${填("--s-hull")}/>`;
+  },
+  火箭: () => `<circle cx="1010" cy="120" r="90" ${填("--r-moon")}/><circle cx="980" cy="100" r="16" ${填("--r-moon-dark")}/><circle cx="1040" cy="150" r="22" ${填("--r-moon-dark")}/>
+    <g class="雲"><ellipse cx="0" cy="560" rx="90" ry="24" opacity="0.8"/></g>
+    <rect x="-200" y="752" width="1600" height="200" ${填("--r-ground")}/>
+    <rect x="460" y="736" width="280" height="20" ${填("--r-pad")}/>
+    <rect x="1010" y="300" width="22" height="452" ${填("--r-tower")}/>
+    <rect x="910" y="380" width="70" height="372" rx="30" ${填("--r-body")}/><polygon points="910,400 945,300 980,400" ${填("--r-trim")}/>
+    <polygon points="910,690 880,752 910,752" ${填("--r-trim")}/><polygon points="980,690 1010,752 980,752" ${填("--r-trim")}/>`,
+  棒球場: () => `<rect x="-200" y="220" width="1600" height="700" ${填("--q-grass")}/>
+    <rect x="-200" y="150" width="1600" height="70" ${填("--q-stand")}/><rect x="-200" y="210" width="1600" height="14" ${填("--q-wall")}/>
+    <polygon points="600,720 1010,480 600,250 190,480" ${填("--q-dirt")}/>
+    <polygon points="600,660 880,480 600,330 320,480" ${填("--q-grass-2")}/>
+    <circle cx="600" cy="480" r="30" ${填("--q-dirt")}/>
+    ${[[960, 480], [600, 290], [240, 480], [600, 680]].map(([x, y]) => `<rect x="${x - 12}" y="${y - 8}" width="24" height="16" ${填("--q-line")}/>`).join("")}
+    <circle cx="860" cy="690" r="22" ${描("--q-line", 3)}/>`,
+  攀岩牆: () => {
+    let 點 = "";
+    for (let i = 0; i < 70; i++) 點 += `<circle cx="${330 + ((i * 97) % 540)}" cy="${130 + ((i * 53) % 610)}" r="${7 + (i % 3) * 3}" ${填(`--c-hold-${1 + (i % 4)}`)}/>`;
+    return `<rect x="-200" y="752" width="1600" height="200" ${填("--c-floor")}/>
+      <rect x="300" y="100" width="600" height="660" ${填("--c-wall")}/><rect x="300" y="100" width="600" height="660" ${描("--c-frame", 8)}/>
+      ${點}<rect x="290" y="740" width="620" height="24" ${填("--c-mat")}/>`;
+  },
+  巨樹: () => `<rect x="-200" y="752" width="1600" height="200" ${填("--t-ground")}/>
+    <polygon points="430,760 500,600 530,250 670,250 700,600 770,760" ${填("--t-bark")}/>
+    ${[[600, 160, 260], [360, 230, 150], [840, 230, 150], [470, 110, 140], [740, 110, 140]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" ${填(r > 200 ? "--t-leaf-2" : "--t-leaf")}/>`).join("")}
+    <rect x="545" y="120" width="110" height="60" ${填("--t-wood")}/><polygon points="530,122 600,80 670,122" ${填("--t-roof")}/>`,
+  金字塔: () => {
+    let 階 = "";
+    for (let i = 0; i < 10; i++) { const y = 760 - i * 62, 半 = 540 * (1 - i / 10) * 0.97; 階 += `<rect x="${600 - 半}" y="${y - 62}" width="${半 * 2}" height="62" ${填(i % 2 ? "--p-stone" : "--p-stone-dark")}/>`; }
+    return `<circle class="太陽" cx="1060" cy="110" r="52"/>
+      <polygon points="860,760 1020,560 1180,760" ${填("--p-far")}/>
+      <rect x="-200" y="752" width="1600" height="200" ${填("--p-sand")}/>${階}
+      <polygon points="570,140 600,100 630,140" ${填("--p-gold")}/>
+      <ellipse cx="110" cy="800" rx="90" ry="18" ${填("--p-water")}/>`;
+  },
+};
+
+function 畫平面布景() {
+  $("布景").innerHTML = 平面布景們[設定.場景]();
+  $("步道").setAttribute("d", "M " + 場景.步道.map(([x, y]) => `${x} ${y}`).join(" L "));
+  const 字 = $("營地字");
+  字.textContent = 場景.營地.字;
+  字.setAttribute("x", Math.max(60, 場景.營地.左 - 130));
+  字.setAttribute("y", 場景.營地.y - 14);
+}
+畫平面布景();
 
 function 開設定() {
   $("連結").value = 設定.連結;
   $("方向選擇").value = 設定.方向;
   $("名稱輸入").value = 設定.名稱;
   $("風格選擇").value = 設定.風格;
+  $("場景選擇").value = 設定.場景;
   $("設定錯誤").textContent = "";
   $("設定").showModal();
 }
@@ -456,7 +767,7 @@ function 開設定() {
 $("開設定").addEventListener("click", 開設定);
 $("取消").addEventListener("click", () => $("設定").close());
 $("設定表單").addEventListener("submit", (e) => {
-  const 新 = { 連結: $("連結").value.trim(), 方向: $("方向選擇").value, 名稱: $("名稱輸入").value.trim(), 風格: $("風格選擇").value };
+  const 新 = { 連結: $("連結").value.trim(), 方向: $("方向選擇").value, 名稱: $("名稱輸入").value.trim(), 風格: $("風格選擇").value, 場景: $("場景選擇").value };
   try {
     解析連結(新.連結);
   } catch (錯) {
@@ -465,6 +776,7 @@ $("設定表單").addEventListener("submit", (e) => {
     return;
   }
   寫設定(新);
+  if (新.場景 !== 設定.場景) { location.reload(); return; }
   設定 = 讀設定();
   換風格();
   寫名稱();
@@ -645,31 +957,34 @@ function 畫(榜) {
   // 營地：一排排開，放不下就整排縮小
   const 營地隊 = 榜.組.filter((g) => g.名次 === null).map((g) => 隊伍.get(g.組別));
   const 營地寬 = 營地隊.reduce((和, 隊) => 和 + 隊寬(隊) + 隊距, -隊距);
-  const 營地縮放 = Math.min(1, 營地可用寬 / Math.max(1, 營地寬));
-  let 營地x = 營地左;
+  const 營地 = 場景.營地;
+  const 營地縮放 = Math.min(1, (營地.右 - 營地.左) / Math.max(1, 營地寬));
+  let 營地x = 營地.左;
   for (const 隊 of 營地隊) {
     const 寬 = 隊寬(隊) * 營地縮放;
     隊.在營地 = true;
-    隊.營地點 = { x: 營地x + 寬 / 2, y: 814 }; // 留位置給兩行名字，不要掉出畫面
+    隊.營地點 = { x: 營地x + 寬 / 2, y: 營地.y };
     隊.縮放 = 營地縮放;
     隊.偏移 = 0;
     隊.偏移y = 0;
     營地x += 寬 + 隊距 * 營地縮放;
   }
 
-  // 步道上
-  const 上山隊 = [];
-  for (const g of 榜.組.filter((g) => g.名次 !== null)) {
-    const 隊 = 隊伍.get(g.組別);
-    const s = g.高度 * 步道長;
+  // 步道上：照成績算該走到哪，擠在一起的並排或往回退（排開）
+  const 上路組 = 榜.組.filter((g) => g.名次 !== null);
+  const 位置們 = 排開(上路組.map((g) => ({ 寬: 隊寬(隊伍.get(g.組別)), s: g.高度 * 步道長 })), 場景);
+  上路組.forEach((g, i) => {
+    const 隊 = 隊伍.get(g.組別), { s, x, y, 縮放 } = 位置們[i];
     const 剛出發 = 隊.在營地;
     if (剛出發) { 隊.在營地 = false; 隊.現在s = 0; }
     if (剛出發 || Math.abs(s - 隊.目標s) > 0.5) {
       隊.起s = 隊.現在s; 隊.目標s = s; 隊.起時 = 現在;
     }
-    上山隊.push({ 隊, 點: 步道.getPointAtLength(s) });
-  }
-  排開擠在一起的(上山隊);
+    const 點 = 走步道(場景, s);
+    隊.偏移 = x - 點.x;
+    隊.偏移y = y - 點.y;
+    隊.縮放 = 縮放;
+  });
 
   for (const g of 榜.組) {
     const 隊 = 隊伍.get(g.組別);
@@ -701,58 +1016,6 @@ function 隊寬(隊) {
   return (隊.人數 - 1) * 40 + 56;
 }
 
-// 主峰在 (600,100)，山腳 y=760 時左右各寬 560
-function 山半寬(y) {
-  return Math.max(0, ((y - 100) / 660) * 560);
-}
-
-// 山在這個高度能站人的半寬：留一點邊，腳才不會踩到山外面
-function 可站半寬(y) {
-  return 山半寬(y) * 可站比例;
-}
-
-// 寬度 寬 的一排，最高能排到哪個 y（山頂太窄，放不下就要往下）
-function 放得下的y(寬) {
-  return 100 + (寬 / 2 / (560 * 可站比例)) * 660;
-}
-
-// 步道一路往上，高度接近就是 y 接近。從山頂往下一排一排排：和這排 y 相差不到 一排高、
-// 而且山在這個高度還站得下的組排進同一排；站不下就往下開新的一排。
-// 這樣同分的組擠在山頂時會往下排，不會排到山外面的天空。排到山腳還放不下才縮小。
-function 排開擠在一起的(上山隊) {
-  上山隊.sort((a, b) => a.點.y - b.點.y);
-  const 排們 = [];
-  for (const 一個 of 上山隊) {
-    const 寬 = 隊寬(一個.隊);
-    const 上一排 = 排們[排們.length - 1];
-    if (上一排 && 一個.點.y - 上一排.y < 一排高 && 上一排.寬 + 隊距 + 寬 <= 2 * 可站半寬(上一排.y)) {
-      上一排.組.push(一個);
-      上一排.寬 += 隊距 + 寬;
-      continue;
-    }
-    const y = Math.min(最低排y, Math.max(一個.點.y, 放得下的y(寬), 上一排 ? 上一排.y + 一排高 : -Infinity));
-    排們.push({ y, 寬, 組: [一個] });
-  }
-  for (const 排 of 排們) {
-    排.組.sort((a, b) => a.點.x - b.點.x);
-    const 半寬 = 可站半寬(排.y);
-    const 縮放 = Math.max(最小縮放, Math.min(1, (半寬 * 2) / 排.寬));
-    const 實寬 = 排.寬 * 縮放;
-    // 中心盡量對著原本的位置，但整排不要跑出山外
-    let 中心 = 排.組.reduce((和, { 點 }) => 和 + 點.x, 0) / 排.組.length;
-    const 左界 = 山中心x - 半寬 + 實寬 / 2, 右界 = 山中心x + 半寬 - 實寬 / 2;
-    中心 = 左界 <= 右界 ? Math.min(右界, Math.max(左界, 中心)) : 山中心x;
-    let x = 中心 - 實寬 / 2;
-    for (const { 隊, 點 } of 排.組) {
-      const 這寬 = 隊寬(隊) * 縮放;
-      隊.偏移 = x + 這寬 / 2 - 點.x;
-      隊.偏移y = 排.y - 點.y;
-      隊.縮放 = 縮放;
-      x += 這寬 + 隊距 * 縮放;
-    }
-  }
-}
-
 function 跳一下(隊) {
   隊.根.classList.remove("跳");
   void 隊.根.getBBox();
@@ -777,7 +1040,7 @@ function 動畫(現在) {
       const t = Math.min(1, (現在 - 隊.起時) / 走路毫秒);
       const 緩 = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
       隊.現在s = 隊.起s + (隊.目標s - 隊.起s) * 緩;
-      const 點 = 步道.getPointAtLength(隊.現在s);
+      const 點 = 走步道(場景, 隊.現在s);
       目標 = { x: 點.x + 隊.偏移, y: 點.y + 隊.偏移y, k: 隊.縮放 };
     }
     // 不直接跳到目標，每格靠近一點：換位置、縮放、回營地都會滑過去
@@ -799,9 +1062,9 @@ function 動畫(現在) {
 
 // ---------- 立體（three.js） ----------
 // 位置還是原本的程式算（隊.顯示、偏移、縮放、面向），名字、問號、超車也還是 SVG 疊在最上面，所以字清楚、
-// 排開名字的算法不用重寫。three.js 畫山、步道、小人、旗子、皇冠和背景。
+// 排開名字的算法不用重寫。three.js 畫布景（每個場景一個，見 立體布景們）、步道、小人、旗子、皇冠和天空。
 // 正交相機的範圍和 SVG 的 viewBox 對齊：SVG 上的 (x, y) 就是 three.js 的 (x, -y)。
-// 電腦跑不了 WebGL 時不會加上 .有3D，畫面就是原本平面的山。
+// 電腦跑不了 WebGL 時不會加上 .有3D，畫面就是平面的布景（平面布景們）。
 const 斜角 = (7 * Math.PI) / 180; // 從稍微高一點的地方往下看，地面才看得出深度
 const 風格光 = {
   白天: { 雪: 1, 環境: 1.0, 日: 2.6, 補: 0.45, 星: 0, 火: 0.3 },
@@ -851,6 +1114,699 @@ function 柏林(種子) {
   };
 }
 
+// ---------- 立體布景：每個場景一個 ----------
+// 拿到 工具（three.js 和共用的小幫手），把布景加進「世界」；回傳：
+//   天：要不要太陽、雲（雲們可換位置）、星星多亮（數字或 (光) => 數字）
+//   粒子：{ 色名, 方向（-1 往下飄、1 往上冒）, 速, 多（數量倍數）, 大（大小倍數）, 開(光) }，不要就不寫
+//   上色(光)：換風格時，布景自己要改的燈光
+//   每格(秒, 差, 靜, 光)：每一格畫面要動的東西
+const 立體布景們 = {
+  山(工) {
+    const { THREE, 世界, 放, 組, 實, 稜, 亮, 投影, 造山, 造地, 造牌, 飄, 種子亂數, 色 } = 工;
+    const 高 = 660 / Math.cos(斜角), 半徑 = 560;
+    造山(世界, 半徑, 高, 200, 100, 7, 0.56, ["--d-snow", "--d-snow-shade", "--d-rock", "--d-rock-dark"]);
+
+    // 山頂的大旗
+    const 頂旗 = 組(世界, 0, 高 - 4, 0);
+    投影(放(new THREE.CylinderGeometry(1.6, 1.6, 64, 8).translate(0, 32, 0), 實("--pole"), 頂旗));
+    放(new THREE.SphereGeometry(3, 12, 8), 實("--crown", { metalness: 0.4, roughness: 0.4 }), 頂旗, 0, 65, 0);
+    const 頂布 = new THREE.PlaneGeometry(46, 26, 14, 5).translate(23, 49, 0);
+    投影(放(頂布, 稜("--summit-flag", { side: THREE.DoubleSide }), 頂旗));
+    const 頂布原 = 頂布.attributes.position.array.slice();
+
+    造地("--d-ground", 7, 3);
+    // 遠山：和主峰一樣的做法，網格粗一點
+    for (const [x, z, r, h, 種子] of [[430, -660, 420, 340, 11], [-470, -630, 360, 270, 23], [40, -760, 300, 230, 31]]) {
+      造山(組(世界, x, 0, z), r, h, 96, 36, 種子, 0.62, ["--d-far-cap", "--d-far-cap", "--d-far", null]);
+    }
+
+    // 松樹和石頭：避開營地那一排（前面中間）和帳篷
+    const 樹幹材 = 實("--d-trunk"), 樹材 = 實("--d-pine"), 雪材 = 實("--d-snow"), 石材 = 稜("--d-stone");
+    const 亂 = 種子亂數(42);
+    const 擋住了 = (x, z) => Math.hypot(x, z) < 半徑 + 30 || (z > 120 && x > -420 && x < 600) || (x < -380 && x > -620 && z > 260);
+    let 種了 = 0;
+    for (let 試 = 0; 種了 < 34 && 試 < 400; 試++) {
+      const a = 亂() * Math.PI * 2, d = 半徑 + 40 + 亂() * 480;
+      const x = Math.cos(a) * d, z = Math.sin(a) * d * 0.9;
+      if (z < -600 || z > 640 || 擋住了(x, z)) continue;
+      種了++;
+      const 樹 = 組(世界, x, 0, z), k = 0.75 + 亂() * 0.6;
+      樹.scale.setScalar(k);
+      樹.rotation.y = 亂() * 6;
+      投影(放(new THREE.CylinderGeometry(4, 5, 16, 12).translate(0, 8, 0), 樹幹材, 樹));
+      for (const [層, 寬, 高度] of [[14, 30, 40], [34, 23, 34], [52, 15, 28]]) {
+        投影(放(new THREE.ConeGeometry(寬, 高度, 18).translate(0, 層 + 高度 / 2, 0), 樹材, 樹));
+        放(new THREE.ConeGeometry(寬 * 0.42, 高度 * 0.42, 18).translate(0, 層 + 高度 * 0.79, 0), 雪材, 樹);
+      }
+    }
+    for (let i = 0, 放了 = 0; 放了 < 22 && i < 300; i++) {
+      const a = 亂() * Math.PI * 2, d = 半徑 - 20 + 亂() * 160;
+      const x = Math.cos(a) * d, z = Math.sin(a) * d;
+      if ((z > 120 && x > -420 && x < 600) || z < -600) continue;
+      放了++;
+      const 石 = 投影(放(new THREE.DodecahedronGeometry(8 + 亂() * 16, 1), 石材, 世界, x, 2, z));
+      石.scale.set(1, 0.55 + 亂() * 0.4, 0.9);
+      石.rotation.set(亂(), 亂() * 6, 亂());
+    }
+
+    // 營地：帳篷、營火、木牌
+    const 營 = 組(世界, -505, 0, 330);
+    營.rotation.y = 0.5;
+    {
+      const 形 = new THREE.Shape([new THREE.Vector2(-36, 0), new THREE.Vector2(0, 48), new THREE.Vector2(36, 0)]);
+      投影(放(new THREE.ExtrudeGeometry(形, { depth: 62, bevelEnabled: false }).translate(0, 0, -31), 稜("--d-tent"), 營));
+      const 門 = new THREE.Shape([new THREE.Vector2(-13, 0), new THREE.Vector2(0, 28), new THREE.Vector2(13, 0)]);
+      放(new THREE.ShapeGeometry(門), 亮("--d-tent-door"), 營, 0, 0, 31.3);
+      for (const z of [-33, 33]) 投影(放(new THREE.CylinderGeometry(1.2, 1.2, 58, 6).translate(0, 29, 0), 實("--pole"), 營, 0, 0, z));
+    }
+    const 營火 = 組(世界, -430, 0, 500);
+    for (const a of [0.4, -0.4, 1.6]) {
+      const 柴 = 投影(放(new THREE.CylinderGeometry(2.4, 2.4, 26, 6), 樹幹材, 營火, 0, 3, 0));
+      柴.rotation.set(Math.PI / 2, 0, a);
+    }
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      投影(放(new THREE.DodecahedronGeometry(3.4, 0), 石材, 營火, Math.cos(a) * 15, 1.5, Math.sin(a) * 15));
+    }
+    const 火材 = 亮("--d-fire", { transparent: true, opacity: 0.92 });
+    const 火焰 = [[0, 0, 7, 22], [4, 2, 4.5, 15], [-4, -1, 4.5, 14]].map(([x, z, r, h]) =>
+      放(new THREE.ConeGeometry(r, h, 7).translate(0, h / 2, 0), 火材, 營火, x, 3, z));
+    const 火光 = new THREE.PointLight(0xffffff, 0, 420, 1);
+    火光.position.set(0, 26, 0);
+    營火.add(火光);
+    造牌("營地", -560, 560);
+
+    return {
+      粒子: { 色名: "--d-flake", 方向: -1, 開: (光) => 光.雪 }, // 日出是晴天，不下雪
+      上色() { 火光.color.copy(色("--d-fire")); },
+      每格(秒, 差, 靜, 光) {
+        if (!靜) {
+          飄(頂布, 頂布原, 秒, 46, 4, 0);
+          火焰.forEach((f, i) => f.scale.set(1, 0.8 + 0.3 * Math.abs(Math.sin(秒 * (9 + i * 3) + i)), 1));
+        }
+        火光.intensity = 光.火 * 2.2 * (靜 ? 1 : 0.85 + 0.15 * Math.sin(秒 * 13));
+      },
+    };
+  },
+
+  火山(工) {
+    const { THREE, 世界, 舞台, 放, 組, 實, 稜, 亮, 投影, 造山, 造地, 造牌, 雲圖, 種子亂數, 高到, 色 } = 工;
+    const 高 = 高到(110), 半徑 = 560, 口 = 46;
+    造山(世界, 半徑, 高, 200, 100, 19, 0.93, ["--v-lava", "--v-lava-dark", "--v-rock", "--v-rock-dark"], 口);
+    // 火山口裡的岩漿，和往下流的三條岩漿
+    const 漿材 = 亮("--v-lava");
+    放(new THREE.CircleGeometry(口 - 2, 32).rotateX(-Math.PI / 2), 漿材, 世界, 0, 高 - 5, 0);
+    for (const [a0, 長度, 種] of [[0.32, 0.58, 1], [-0.45, 0.42, 2], [0.95, 0.3, 3]]) {
+      const 點 = [];
+      for (let t = 0; t <= 1.0001; t += 0.05) {
+        const h = 1 - t * 長度, r = (口 + (半徑 - 口) * (1 - h)) * 1.06 + 4, a = a0 + Math.sin(t * 6 + 種) * 0.07;
+        點.push(new THREE.Vector3(Math.sin(a) * r, h * 高 - 6, Math.cos(a) * r));
+      }
+      放(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(點), 60, 7, 6), 漿材, 世界);
+    }
+    const 口光 = new THREE.PointLight(0xffffff, 0, 700, 1);
+    口光.position.set(0, 高 + 40, 60);
+    世界.add(口光);
+
+    造地("--v-ground", 6, 13);
+    for (const [x, z, r, h, 種子] of [[430, -660, 420, 330, 11], [-470, -630, 360, 260, 23]]) {
+      造山(組(世界, x, 0, z), r, h, 96, 36, 種子, 2, ["--v-far", "--v-far", "--v-far", null]);
+    }
+    const 亂 = 種子亂數(29), 石材 = 稜("--v-rock-dark"), 熱石 = 亮("--v-lava-dark");
+    for (let i = 0, 放了 = 0; 放了 < 30 && i < 300; i++) {
+      const a = 亂() * Math.PI * 2, d = 半徑 + 亂() * 400, x = Math.cos(a) * d, z = Math.sin(a) * d;
+      if ((z > 120 && x > -420 && x < 600) || z < -600) continue;
+      放了++;
+      const 石 = 投影(放(new THREE.DodecahedronGeometry(8 + 亂() * 18, 0), 亂() < 0.2 ? 熱石 : 石材, 世界, x, 2, z));
+      石.scale.set(1, 0.5 + 亂() * 0.4, 0.9);
+      石.rotation.set(亂(), 亂() * 6, 亂());
+    }
+    // 枯樹
+    for (const [x, z] of [[-760, 120], [780, 200], [900, -100], [-880, -60]]) {
+      const 樹 = 組(世界, x, 0, z);
+      投影(放(new THREE.CylinderGeometry(3, 6, 70, 6).translate(0, 35, 0), 石材, 樹));
+      for (const s of [-1, 1]) { const 枝 = 投影(放(new THREE.CylinderGeometry(1.5, 3, 34, 5).translate(0, 17, 0), 石材, 樹, 0, 40 + s * 8, 0)); 枝.rotation.z = s * 0.8; }
+    }
+    造牌("營地", -560, 560);
+
+    // 冒煙：從火山口一團團往上飄，越高越大越淡
+    const 煙們 = Array.from({ length: 7 }, (_, i) => {
+      const o = 放(new THREE.PlaneGeometry(160, 80), 亮("--v-smoke", { map: 雲圖(40 + i), transparent: true, depthWrite: false }), 舞台, 600, -110, 900 + i);
+      o.相位 = i / 7;
+      return o;
+    });
+    return {
+      天: { 雲: false },
+      粒子: { 色名: "--v-ember", 方向: 1, 速: 0.7, 多: 0.35, 大: 0.8 },
+      上色() { 口光.color.copy(色("--v-lava")); },
+      每格(秒, 差, 靜, 光) {
+        口光.intensity = (光.火 + 0.6) * 3 * (靜 ? 1 : 0.85 + 0.15 * Math.sin(秒 * 7));
+        for (const 煙 of 煙們) {
+          const t = 靜 ? 煙.相位 : (秒 / 9 + 煙.相位) % 1;
+          煙.position.set(600 + Math.sin(t * 5 + 煙.相位 * 9) * 30 + t * 120, -110 + t * 260, 900);
+          煙.scale.setScalar(0.5 + t * 1.6);
+          煙.material.opacity = 0.85 * Math.min(1, t * 6) * (1 - t);
+        }
+      },
+    };
+  },
+
+  大樓(工) {
+    const { THREE, 世界, 放, 組, 實, 亮, 投影, 高到, 點到, 梁, 造地, 造牌, 種子亂數, 色 } = 工;
+    造地("--b-street", 1.5, 4);
+    const 亂 = 種子亂數(5);
+    const 頂 = 高到(130), 深 = 320;
+    投影(放(new THREE.BoxGeometry(520, 頂, 深).translate(0, 頂 / 2, -深 / 2), 實("--b-wall", { roughness: 0.7 }), 世界));
+    // 每層樓的樓板邊和窗戶；亮著的窗戶夜裡最明顯
+    const 板材 = 實("--b-wall-dark");
+    for (let k = 0; k < 10; k++) 投影(放(new THREE.BoxGeometry(536, 6, 12), 板材, 世界, 0, 高到(740 - k * 60, 4) - 3, 4));
+    const 窗幾何 = new THREE.BoxGeometry(40, 34, 3);
+    const 暗窗 = new THREE.InstancedMesh(窗幾何, 實("--b-window", { roughness: 0.15, metalness: 0.4 }), 80);
+    const 亮窗 = new THREE.InstancedMesh(窗幾何, 亮("--b-lit"), 80);
+    let 暗數 = 0, 亮數 = 0;
+    const m = new THREE.Matrix4();
+    for (let 層 = 0; 層 < 10; 層++) for (let 列 = 0; 列 < 8; 列++) {
+      m.makeTranslation(382 + 列 * 62 - 600, 高到(710 - 層 * 60, 1.5), 1.5);
+      if (亂() < 0.3) 亮窗.setMatrixAt(亮數++, m); else 暗窗.setMatrixAt(暗數++, m);
+    }
+    暗窗.count = 暗數; 亮窗.count = 亮數;
+    世界.add(暗窗, 亮窗);
+    // 一樓大門和雨遮
+    放(new THREE.BoxGeometry(150, 高到(744), 3), 實("--b-window", { roughness: 0.15, metalness: 0.4 }), 世界, 0, 高到(744) / 2, 1.5);
+    投影(放(new THREE.BoxGeometry(190, 5, 40), 實("--b-frame"), 世界, 0, 高到(742, 20), 20));
+
+    // 逃生梯：步道轉彎的地方是平台，中間是斜的樓梯和扶手
+    const 鐵 = 實("--b-frame", { roughness: 0.5, metalness: 0.5 });
+    const 梯 = 場景.步道;
+    for (let i = 0; i < 梯.length; i++) {
+      const [x, y] = 梯[i];
+      if (i < 梯.length - 1) 投影(放(new THREE.BoxGeometry(96, 4, 46), 鐵, 世界, x - 600, 高到(y, 26) - 2, 26));
+      if (i === 0) continue;
+      const [px, py] = 梯[i - 1];
+      梁(點到(px, py + 2, 26), 點到(x, y + 2, 26), 34, 4, 鐵);
+      梁(點到(px, py - 26, 48), 點到(x, y - 26, 48), 2, 2, 鐵);
+    }
+    for (const x of [400, 800]) 投影(放(new THREE.CylinderGeometry(2.5, 2.5, 高到(200), 6).translate(0, 高到(200) / 2, 0), 鐵, 世界, x - 600, 0, 48));
+
+    // 屋頂：女兒牆、停機坪、天線
+    投影(放(new THREE.BoxGeometry(540, 10, 深 + 16), 實("--b-roof"), 世界, 0, 頂 + 5, -深 / 2));
+    const 坪 = 組(世界, 0, 頂 + 10, -深 / 2);
+    投影(放(new THREE.CylinderGeometry(110, 110, 4, 40), 實("--b-wall-dark"), 坪));
+    const 白 = 實("--b-mark");
+    放(new THREE.TorusGeometry(90, 4, 6, 40).rotateX(Math.PI / 2), 白, 坪, 0, 2.5, 0);
+    for (const x of [-22, 22]) 放(new THREE.BoxGeometry(10, 2, 70), 白, 坪, x, 2.5, 0);
+    放(new THREE.BoxGeometry(44, 2, 10), 白, 坪, 0, 2.5, 0);
+    for (const [x, z] of [[-200, -60], [-170, -260], [190, -270]]) 投影(放(new THREE.BoxGeometry(46, 30, 40).translate(0, 15, 0), 實("--b-wall-dark"), 世界, x, 頂 + 10, z));
+    投影(放(new THREE.CylinderGeometry(2.5, 3.5, 96, 6).translate(0, 48, 0), 鐵, 世界, 200, 頂 + 10, -60));
+    const 燈 = 放(new THREE.SphereGeometry(7, 12, 8), 亮("--b-beacon"), 世界, 200, 頂 + 108, -60);
+
+    // 遠處的大樓群；夜裡窗戶會亮
+    const 遠材 = 實("--b-far");
+    const 遠窗 = new THREE.InstancedMesh(new THREE.PlaneGeometry(10, 12), 亮("--b-lit"), 600);
+    let 遠窗數 = 0;
+    for (let i = 0; i < 16; i++) {
+      const x = -1150 + i * 150 + 亂() * 60, z = -650 - 亂() * 550, w = 100 + 亂() * 90, h = 220 + 亂() * (x < -250 ? 220 : 520); // 左邊矮一點，不要擋到標題
+      if (Math.abs(x) < 330 && z > -800) continue;
+      投影(放(new THREE.BoxGeometry(w, h, 120).translate(0, h / 2, 0), 遠材, 世界, x, 0, z));
+      for (let y = 30; y < h - 20 && 遠窗數 < 600; y += 28) for (let u = -w / 2 + 16; u < w / 2 - 10; u += 22) {
+        if (亂() < 0.35) { m.makeTranslation(x + u, y, z + 61); 遠窗.setMatrixAt(遠窗數++, m); }
+      }
+    }
+    遠窗.count = 遠窗數;
+    世界.add(遠窗);
+    // 街燈和行道樹
+    for (const x of [-560, -330, 330, 560]) {
+      投影(放(new THREE.CylinderGeometry(2, 2.5, 80, 6).translate(0, 40, 0), 鐵, 世界, x, 0, 150));
+      放(new THREE.SphereGeometry(7, 12, 8), 亮("--b-lit"), 世界, x, 82, 150);
+    }
+    for (const x of [-450, 450, -700, 700]) 投影(放(new THREE.IcosahedronGeometry(30, 1), 實("--c-bush", { flatShading: true }), 世界, x, 46, 120));
+    造牌("大廳");
+
+    return {
+      上色(光) { 遠窗.visible = !!光.星; },
+      每格(秒, 差, 靜) { 燈.visible = 靜 || Math.floor(秒 * 1.4) % 2 === 0; },
+    };
+  },
+
+  深海(工) {
+    const { THREE, 世界, 放, 組, 實, 稜, 亮, 投影, 高到, 點到, 梁, 造地, 種子亂數, 色 } = 工;
+    造地("--s-sand", 10, 5);
+    const 亂 = 種子亂數(9);
+    const 石材 = 稜("--s-rock"), 暗石 = 稜("--s-rock-dark");
+    // 海溝兩邊的石壁：照 場景.範圍 畫，越深越窄
+    for (const 邊 of [-1, 1]) {
+      const 點 = [];
+      for (let y = 160; y <= 790; y += 22) {
+        const [左, 右] = 場景.範圍(Math.min(y, 760));
+        點.push(new THREE.Vector2((邊 < 0 ? 左 - 36 : 右 + 36) + 邊 * 亂() * 40 - 600, 高到(y, 80)));
+      }
+      const 形 = new THREE.Shape();
+      形.moveTo(邊 * 1500, 點[0].y);
+      for (const p of 點) 形.lineTo(p.x, p.y);
+      形.lineTo(邊 * 1500, 點[點.length - 1].y);
+      形.closePath();
+      投影(放(new THREE.ExtrudeGeometry(形, { depth: 460, bevelEnabled: true, bevelSize: 18, bevelThickness: 24, bevelSegments: 2 }).translate(0, 0, -400), 石材, 世界));
+      for (let i = 0; i < 20; i++) {
+        const p = 點[Math.floor(亂() * 點.length)];
+        const 石 = 投影(放(new THREE.DodecahedronGeometry(14 + 亂() * 30, 0), 亂() < 0.5 ? 石材 : 暗石, 世界, p.x + 邊 * 亂() * 50, p.y, 60 + 亂() * 50));
+        石.rotation.set(亂() * 3, 亂() * 3, 0);
+      }
+    }
+    // 海面：上面淡淡一層，海面線會起伏
+    放(new THREE.PlaneGeometry(4000, 800), 亮("--s-surface", { transparent: true, opacity: 0.35, depthWrite: false }), 世界, 0, 高到(150, -700) + 400, -700);
+    const 浪 = new THREE.PlaneGeometry(4000, 8, 160, 1);
+    const 浪原 = 浪.attributes.position.array.slice();
+    放(浪, 亮("--s-ray", { transparent: true, opacity: 0.85 }), 世界, 0, 高到(150, 150), 150);
+    // 從海面照下來的光
+    const 光圖 = (() => {
+      const c = document.createElement("canvas");
+      c.width = 4; c.height = 128;
+      const g = c.getContext("2d"), 漸 = g.createLinearGradient(0, 0, 0, 128);
+      漸.addColorStop(0, "rgba(255,255,255,1)"); 漸.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = 漸; g.fillRect(0, 0, 4, 128);
+      return new THREE.CanvasTexture(c);
+    })();
+    const 光束們 = [-420, -150, 120, 330, 560].map((x, i) => {
+      const o = 放(new THREE.PlaneGeometry(70 + i * 12, 760).translate(0, -380, 0), 亮("--s-ray", { map: 光圖, transparent: true, opacity: 0.15, depthWrite: false, blending: THREE.AdditiveBlending }), 世界, x, 高到(150, -300), -300);
+      o.rotation.z = 0.18 - i * 0.05;
+      return o;
+    });
+
+    // 船：甲板在 y=140，沒名次的組站在上面
+    const 船 = 組(世界, 310 - 600, 高到(140, 120), 120);
+    {
+      const 深度 = 高到(140) - 高到(198);
+      const 形 = new THREE.Shape([new THREE.Vector2(-290, 0), new THREE.Vector2(290, 0), new THREE.Vector2(240, -深度), new THREE.Vector2(-250, -深度)]);
+      投影(放(new THREE.ExtrudeGeometry(形, { depth: 120, bevelEnabled: false }).translate(0, 0, -60), 稜("--s-hull"), 船));
+      投影(放(new THREE.BoxGeometry(586, 8, 126), 實("--s-deck"), 船, 0, -4, 0));
+      投影(放(new THREE.BoxGeometry(130, 60, 80).translate(0, 30, 0), 實("--s-bubble"), 船, 190, 0, -30));
+      投影(放(new THREE.CylinderGeometry(3, 3, 150, 6).translate(0, 75, 0), 實("--d-trunk"), 船, -200, 0, -30));
+      投影(放(new THREE.CylinderGeometry(2, 2, 110, 6).translate(0, 55, 0), 實("--d-trunk"), 船, 190, 60, -30)).rotation.z = 0.3;
+    }
+    // 浮標和潛水繩：步道從這裡往下
+    投影(放(new THREE.SphereGeometry(14, 16, 12), 實("--s-hull"), 世界, 200, 高到(150, 60), 60));
+    梁(點到(800, 150, 60), 點到(800, 224, 60), 2, 2, 實("--s-deck"));
+
+    // 海底的寶箱：第一名站的地方，會發光
+    const 箱 = 組(世界, 0, 0, 30);
+    投影(放(new THREE.BoxGeometry(80, 34, 46).translate(0, 17, 0), 實("--t-wood"), 箱));
+    const 蓋 = 投影(放(new THREE.CylinderGeometry(23, 23, 80, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).translate(0, 0, 23), 實("--t-wood"), 箱, 0, 34, -23));
+    蓋.rotation.x = -1.1;
+    const 金 = 實("--p-gold", { metalness: 0.7, roughness: 0.3 });
+    for (let i = 0; i < 14; i++) 放(new THREE.CylinderGeometry(4, 4, 1.6, 12), 金, 箱, -30 + 亂() * 60, 34 + 亂() * 6, -14 + 亂() * 28).rotation.set(亂(), 0, 亂());
+    放(new THREE.SphereGeometry(20, 16, 12), 亮("--s-glow", { transparent: true, opacity: 0.6 }), 箱, 0, 36, 0);
+    const 寶光 = new THREE.PointLight(0xffffff, 2, 300, 1);
+    寶光.position.set(0, 60, 20);
+    箱.add(寶光);
+
+    // 珊瑚、海草
+    const 珊材們 = [實("--s-coral"), 實("--s-coral-2")];
+    for (let i = 0; i < 26; i++) {
+      const x = (亂() - 0.5) * 1500, z = -200 + 亂() * 420;
+      if (Math.abs(x) < 110 && z > -40) continue;
+      const 珊 = 組(世界, x, 0, z), 材 = 珊材們[i % 2];
+      if (i % 3) for (let j = 0; j < 5; j++) { const 枝 = 投影(放(new THREE.CylinderGeometry(2, 4, 26 + 亂() * 26, 6).translate(0, 18, 0), 材, 珊)); 枝.rotation.set((亂() - 0.5) * 1.2, 0, (亂() - 0.5) * 1.2); }
+      else 投影(放(new THREE.SphereGeometry(22, 12, 8).scale(1, 0.9, 0.25), 材, 珊, 0, 18, 0));
+    }
+    const 草材 = 實("--s-weed");
+    const 海草們 = Array.from({ length: 16 }, (_, i) => {
+      const x = (亂() - 0.5) * 1400, z = -150 + 亂() * 360;
+      let 父 = 組(世界, x, 0, z);
+      const 節們 = [];
+      for (let j = 0; j < 7; j++) {
+        投影(放(new THREE.CapsuleGeometry(3.4, 14, 3, 6).translate(0, 9, 0), 草材, 父));
+        父 = 組(父, 0, 18, 0);
+        節們.push(父);
+      }
+      return { 節們, 相位: i * 0.7 };
+    });
+    // 魚群和水母
+    const 魚材 = 實("--s-fish", { roughness: 0.5 });
+    const 魚群們 = [[-200, 300, 1], [300, 470, -1], [-500, 600, 1]].map(([x, y, 向], k) => {
+      const 群 = 組(世界, x, 高到(y, 160), 160);
+      for (let i = 0; i < 7; i++) {
+        const 魚 = 組(群, (i % 4) * 30 + 亂() * 10, Math.floor(i / 4) * 22 + 亂() * 10, 亂() * 30);
+        放(new THREE.SphereGeometry(9, 12, 8).scale(1.6, 0.8, 0.6), 魚材, 魚);
+        放(new THREE.ConeGeometry(6, 12, 4).rotateZ(Math.PI / 2), 魚材, 魚, -18, 0, 0);
+        魚.scale.x = 向;
+      }
+      return { 群, 向, 快: 30 + k * 12 };
+    });
+    const 母材 = 亮("--s-jelly", { transparent: true, opacity: 0.75 });
+    const 水母們 = [[150, 330], [-350, 430], [420, 560]].map(([x, y], i) => {
+      const 母 = 組(世界, x, 高到(y, 140), 140);
+      放(new THREE.SphereGeometry(18, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), 母材, 母);
+      for (let j = 0; j < 5; j++) 放(new THREE.CylinderGeometry(0.8, 0.8, 36, 4).translate(0, -18, 0), 母材, 母, -12 + j * 6, 0, 0);
+      return { 母, y: 母.position.y, 相位: i * 2 };
+    });
+
+    return {
+      天: { 太陽: false, 雲: false, 星: 0 },
+      粒子: { 色名: "--s-bubble", 方向: 1, 速: 0.8, 多: 0.25, 大: 0.7 },
+      上色() { 寶光.color.copy(色("--s-glow")); },
+      每格(秒, 差, 靜) {
+        if (靜) return;
+        const p = 浪.attributes.position;
+        for (let i = 0; i < p.count; i++) p.setY(i, 浪原[i * 3 + 1] + Math.sin(浪原[i * 3] * 0.02 + 秒 * 1.6) * 4);
+        p.needsUpdate = true;
+        光束們.forEach((o, i) => { o.material.opacity = 0.1 + 0.07 * Math.sin(秒 * 0.7 + i * 1.3); });
+        for (const { 節們, 相位 } of 海草們) 節們.forEach((節, j) => { 節.rotation.z = Math.sin(秒 * 1.3 + 相位 + j * 0.5) * 0.12; });
+        for (const 魚群 of 魚群們) {
+          魚群.群.position.x += 魚群.向 * 魚群.快 * 差;
+          if (魚群.群.position.x > 900) 魚群.群.position.x = -1000;
+          if (魚群.群.position.x < -1000) 魚群.群.position.x = 900;
+        }
+        for (const 水母 of 水母們) 水母.母.position.y = 水母.y + Math.sin(秒 * 0.9 + 水母.相位) * 14;
+      },
+    };
+  },
+
+  火箭(工) {
+    const { THREE, 世界, 舞台, 放, 組, 實, 稜, 亮, 投影, 高到, 點到, 梁, 造地, 造牌, 種子亂數 } = 工;
+    造地("--r-ground", 4, 6);
+    // 發射台：步道從這裡出發
+    投影(放(new THREE.CylinderGeometry(150, 160, 14, 40).translate(0, 7, 0), 實("--r-pad"), 世界, 0, 0, 0));
+    放(new THREE.TorusGeometry(120, 3, 6, 40).rotateX(Math.PI / 2), 亮("--r-flame"), 世界, 0, 14.5, 0);
+
+    // 右邊的大火箭和發射塔
+    const z0 = -60, 箭 = 組(世界, 345, 0, z0);
+    const 身頂 = 高到(400, z0), 尖頂 = 高到(300, z0);
+    const 白 = 實("--r-body", { roughness: 0.4 }), 紅 = 實("--r-trim", { roughness: 0.5 });
+    投影(放(new THREE.CylinderGeometry(36, 36, 身頂 - 24, 32).translate(0, 24 + (身頂 - 24) / 2, 0), 白, 箭));
+    投影(放(new THREE.ConeGeometry(36, 尖頂 - 身頂, 32).translate(0, 身頂 + (尖頂 - 身頂) / 2, 0), 紅, 箭));
+    投影(放(new THREE.CylinderGeometry(20, 30, 24, 20).translate(0, 12, 0), 實("--r-pad", { metalness: 0.5 }), 箭));
+    for (const y of [80, 身頂 - 30]) 放(new THREE.CylinderGeometry(37, 37, 12, 32), 紅, 箭, 0, y, 0);
+    for (let i = 0; i < 3; i++) {
+      const 翼 = 組(箭, 0, 0, 0);
+      翼.rotation.y = (i / 3) * Math.PI * 2 + 0.5;
+      投影(放(new THREE.BoxGeometry(6, 80, 46).translate(0, 64, 52), 紅, 翼));
+    }
+    for (const y of [身頂 - 90, 身頂 - 150]) {
+      放(new THREE.TorusGeometry(11, 2.5, 8, 20), 實("--r-pad"), 箭, 0, y, 36);
+      放(new THREE.CircleGeometry(10, 20), 亮("--b-window"), 箭, 0, y, 36.5);
+    }
+    const 塔材 = 實("--r-tower", { roughness: 0.6 });
+    const 塔頂 = 高到(300, z0);
+    for (const dx of [-22, 22]) 投影(放(new THREE.BoxGeometry(6, 塔頂, 6).translate(0, 塔頂 / 2, 0), 塔材, 世界, 425 + dx, 0, z0));
+    for (let y = 0; y < 塔頂 - 30; y += 40) {
+      梁(new THREE.Vector3(403, y, z0), new THREE.Vector3(447, y + 40, z0), 3, 3, 塔材);
+      梁(new THREE.Vector3(403, y + 40, z0), new THREE.Vector3(447, y + 40, z0), 3, 3, 塔材);
+    }
+    for (const y of [身頂 * 0.4, 身頂 * 0.8]) 投影(放(new THREE.BoxGeometry(46, 6, 10), 塔材, 世界, 390, y, z0));
+
+    // 天上：月亮（終點旁邊）、有環的行星、衛星、遠處升空的小火箭
+    const 月 = 組(舞台, 1010, -120, -3600);
+    放(new THREE.SphereGeometry(110, 48, 32), 實("--r-moon", { roughness: 1 }), 月);
+    const 坑材 = 實("--r-moon-dark", { roughness: 1 }), 亂 = 種子亂數(3);
+    for (let i = 0; i < 12; i++) {
+      const a = 亂() * Math.PI * 2, b = (亂() - 0.3) * 1.2, r = 10 + 亂() * 18;
+      放(new THREE.SphereGeometry(r, 16, 10).scale(1, 1, 0.3), 坑材, 月, Math.cos(a) * Math.cos(b) * 100, Math.sin(b) * 100, Math.sin(a) * 30 + 95).lookAt(月.position.x, 月.position.y, 月.position.z + 400);
+    }
+    const 星球 = 組(舞台, 180, -160, -3800);
+    放(new THREE.SphereGeometry(46, 32, 20), 實("--r-planet"), 星球);
+    const 環 = 放(new THREE.RingGeometry(62, 92, 48), 實("--r-ring", { side: THREE.DoubleSide }), 星球);
+    環.rotation.set(1.2, 0.3, 0);
+    const 衛星 = 組(舞台, 0, -250, -2000);
+    放(new THREE.BoxGeometry(16, 16, 16), 實("--r-pad", { metalness: 0.6 }), 衛星);
+    for (const s of [-1, 1]) 放(new THREE.BoxGeometry(36, 12, 1), 實("--b-window", { metalness: 0.6, roughness: 0.2 }), 衛星, s * 28, 0, 0);
+    const 小箭 = 組(世界, -420, 0, -900);
+    放(new THREE.CylinderGeometry(9, 9, 60, 12).translate(0, 30, 0), 白, 小箭);
+    放(new THREE.ConeGeometry(9, 22, 12).translate(0, 71, 0), 紅, 小箭);
+    const 小火 = 放(new THREE.ConeGeometry(8, 34, 10).rotateX(Math.PI).translate(0, -17, 0), 亮("--r-flame", { transparent: true, opacity: 0.9 }), 小箭);
+    造牌("發射台");
+
+    return {
+      天: { 太陽: false, 雲們: [[100, -560, 1, 3], [800, -610, 0.9, 5], [-200, -500, 1.2, 8], [500, -650, 0.7, 13]], 星: (光) => (光.星 ? 1 : 0.35) },
+      每格(秒, 差, 靜) {
+        if (靜) return;
+        衛星.position.x = ((秒 * 30) % 1800) - 300;
+        衛星.rotation.z = 秒 * 0.4;
+        const t = (秒 % 16) / 16;
+        小箭.position.y = t * 1400;
+        小火.scale.set(1, 0.8 + 0.4 * Math.abs(Math.sin(秒 * 20)), 1);
+      },
+    };
+  },
+
+  棒球場(工) {
+    const { THREE, 世界, 放, 組, 實, 亮, 投影, 地到, 梁, 造牌, 種子亂數, 色 } = 工;
+    世界.rotation.x = (50 * Math.PI) / 180; // 從看台上往下看，球場才攤得開
+    const 平 = (x, y, 高 = 0) => new THREE.Vector3(x - 600, 高, 地到(y));
+    const 形 = (點們) => new THREE.ShapeGeometry(new THREE.Shape(點們.map(([x, y]) => new THREE.Vector2(x - 600, -地到(y))))).rotateX(-Math.PI / 2);
+    // 草地：一條深一條淺的割草紋
+    const 紋 = document.createElement("canvas");
+    紋.width = 2; 紋.height = 16;
+    { const g = 紋.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, 2, 8); g.fillStyle = "#e4e4e4"; g.fillRect(0, 8, 2, 8); }
+    const 紋圖 = new THREE.CanvasTexture(紋);
+    紋圖.wrapS = 紋圖.wrapT = THREE.RepeatWrapping;
+    紋圖.repeat.set(1, 14);
+    紋圖.magFilter = THREE.NearestFilter;
+    放(new THREE.PlaneGeometry(3400, 2200).rotateX(-Math.PI / 2), 實("--q-grass", { map: 紋圖, roughness: 0.95 }), 世界, 0, 0, -500).receiveShadow = true;
+    放(形([[600, 725], [1015, 480], [600, 245], [185, 480]]), 實("--q-dirt"), 世界, 0, 0.5, 0).receiveShadow = true;
+    放(形([[600, 655], [870, 480], [600, 335], [330, 480]]), 實("--q-grass-2", { map: 紋圖 }), 世界, 0, 1, 0).receiveShadow = true;
+    投影(放(new THREE.CylinderGeometry(34, 46, 8, 24), 實("--q-dirt"), 世界, 0, 2, 地到(480)));
+    const 白 = 實("--q-line");
+    for (const [x, y] of [[960, 480], [600, 290], [240, 480]]) 投影(放(new THREE.BoxGeometry(24, 5, 24), 白, 世界, x - 600, 3, 地到(y))).rotation.y = Math.PI / 4;
+    放(new THREE.ShapeGeometry(new THREE.Shape([[-14, 0], [14, 0], [14, 10], [0, 22], [-14, 10]].map(([x, y]) => new THREE.Vector2(x, y)))).rotateX(-Math.PI / 2), 白, 世界, 0, 2, 地到(680) + 8);
+    // 界外線、打擊準備區
+    梁(平(600, 680, 1.5), 平(1180, 358, 1.5), 4, 1, 白);
+    梁(平(600, 680, 1.5), 平(20, 358, 1.5), 4, 1, 白);
+    放(new THREE.RingGeometry(20, 24, 32).rotateX(-Math.PI / 2), 白, 世界, 260, 2, 地到(690));
+
+    // 外野牆、看台和觀眾、記分板、燈塔
+    const 牆z = 地到(218);
+    投影(放(new THREE.BoxGeometry(3400, 50, 12).translate(0, 25, 0), 實("--q-wall"), 世界, 0, 0, 牆z));
+    放(new THREE.BoxGeometry(3400, 4, 14), 實("--p-gold"), 世界, 0, 51, 牆z);
+    const 台材 = [實("--q-stand"), 實("--q-stand-2")];
+    for (let i = 0; i < 3; i++) 投影(放(new THREE.BoxGeometry(3400, 34 * (i + 1), 44).translate(0, 17 * (i + 1), 0), 台材[i % 2], 世界, 0, 0, 牆z - 40 - i * 44));
+    const 亂 = 種子亂數(77);
+    const 觀眾 = new THREE.InstancedMesh(new THREE.SphereGeometry(6, 8, 6), new THREE.MeshStandardMaterial({ roughness: 0.8 }), 600);
+    {
+      const m = new THREE.Matrix4(), c = new THREE.Color();
+      for (let i = 0; i < 600; i++) {
+        const 排 = i % 3, x = -1500 + 亂() * 3000;
+        m.makeTranslation(x, 34 * (排 + 1) + 6, 牆z - 40 - 排 * 44 + (亂() - 0.5) * 14);
+        觀眾.setMatrixAt(i, m);
+        觀眾.setColorAt(i, c.set(色票[Math.floor(亂() * 色票.length)]));
+      }
+    }
+    世界.add(觀眾);
+    // 記分板和燈塔放右邊，不要蓋到左上角的標題
+    const 板 = 組(世界, 430, 110, 牆z - 150);
+    const 板布 = document.createElement("canvas");
+    板布.width = 512; 板布.height = 160;
+    const 板圖 = new THREE.CanvasTexture(板布);
+    板圖.colorSpace = THREE.SRGBColorSpace;
+    const 寫板 = () => {
+      const g = 板布.getContext("2d");
+      g.fillStyle = "#14261c"; g.fillRect(0, 0, 512, 160);
+      g.fillStyle = "#ffd75e";
+      g.font = "800 72px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText((設定.名稱 || "榜單").slice(0, 7), 256, 84);
+      板圖.needsUpdate = true;
+    };
+    寫板();
+    document.fonts?.ready.then(寫板);
+    投影(放(new THREE.BoxGeometry(240, 84, 16), 實("--q-wall"), 板));
+    放(new THREE.PlaneGeometry(220, 68), new THREE.MeshBasicMaterial({ map: 板圖 }), 板, 0, 0, 8.5);
+    for (const x of [-1, 1]) 投影(放(new THREE.BoxGeometry(8, 110, 8).translate(0, -55, 0), 實("--q-pole"), 板, x * 90, -40, -10));
+    const 塔燈們 = [];
+    for (const x of [680, 900]) {
+      const 塔 = 組(世界, x, 0, 牆z - 140);
+      投影(放(new THREE.CylinderGeometry(4, 6, 260, 8).translate(0, 130, 0), 實("--q-pole"), 塔));
+      放(new THREE.BoxGeometry(70, 40, 8), 亮("--q-light"), 塔, 0, 275, 8);
+      const 燈 = new THREE.PointLight(0xffffff, 0, 1800, 1);
+      燈.position.set(-300, 400, 500);
+      塔.add(燈);
+      塔燈們.push(燈);
+    }
+    // 休息區：沒名次的組在前面等
+    const 休息區 = 組(世界, 300, 0, 地到(790));
+    投影(放(new THREE.BoxGeometry(560, 40, 50).translate(0, 20, -25), 實("--q-wall"), 休息區));
+    投影(放(new THREE.BoxGeometry(580, 6, 70), 實("--q-stand-2"), 休息區, 0, 44, -25));
+    造牌("休息區", -560, 地到(828));
+
+    return {
+      上色(光) { for (const 燈 of 塔燈們) { 燈.color.copy(色("--q-light")); 燈.intensity = 光.星 ? 1.4 : 0; } },
+    };
+  },
+
+  攀岩牆(工) {
+    const { THREE, 世界, 放, 組, 實, 稜, 亮, 投影, 高到, 點到, 梁, 造地, 造牌, 種子亂數 } = 工;
+    造地("--c-floor", 2, 7);
+    const 亂 = 種子亂數(13);
+    // 牆板：6 欄 × 7 排，一塊塊微微傾斜，看起來像真的岩板
+    const 板材們 = [實("--c-wall", { roughness: 0.9 }), 實("--c-wall-2", { roughness: 0.9 })];
+    const 高格 = (760 - 100) / 7;
+    for (let 欄 = 0; 欄 < 6; 欄++) for (let 排 = 0; 排 < 7; 排++) {
+      const x = 300 + 欄 * 100 + 50, y上 = 100 + 排 * 高格, y下 = y上 + 高格, h = 高到(y上) - 高到(y下);
+      const 板 = 投影(放(new THREE.BoxGeometry(97, h - 3, 20), 板材們[(欄 + 排) % 2], 世界, x - 600, (高到(y上) + 高到(y下)) / 2, -10));
+      板.rotation.set((亂() - 0.5) * 0.12, (亂() - 0.5) * 0.1, 0);
+    }
+    const 鐵 = 實("--c-frame", { metalness: 0.5, roughness: 0.5 });
+    for (const x of [292, 908]) 投影(放(new THREE.BoxGeometry(16, 高到(80), 30).translate(0, 高到(80) / 2, 0), 鐵, 世界, x - 600, 0, -6));
+    投影(放(new THREE.BoxGeometry(660, 16, 40), 鐵, 世界, 0, 高到(88), -6));
+    for (const x of [-250, 250]) 梁(new THREE.Vector3(x, 高到(100), -30), new THREE.Vector3(x, 0, -260), 10, 10, 鐵);
+    // 岩點：到處都有，路線上的比較大、都是同一個顏色
+    const 點材們 = [1, 2, 3, 4].map((i) => 實(`--c-hold-${i}`, { roughness: 0.6, flatShading: true }));
+    for (let i = 0; i < 130; i++) {
+      const 點 = 投影(放(new THREE.DodecahedronGeometry(5 + 亂() * 6, 0), 點材們[i % 4], 世界, 315 + 亂() * 570 - 600, 高到(115 + 亂() * 630), 4));
+      點.scale.z = 0.6;
+      點.rotation.set(亂() * 3, 亂() * 3, 亂() * 3);
+    }
+    const 全長 = 走步道(場景, Infinity).s;
+    for (let s = 20; s < 全長; s += 42) {
+      const p = 走步道(場景, s);
+      const 點 = 投影(放(new THREE.DodecahedronGeometry(10 + 亂() * 4, 0), 點材們[0], 世界, p.x - 600 + (亂() - 0.5) * 30, 高到(p.y - 30), 6));
+      點.scale.z = 0.6;
+      點.rotation.set(亂() * 3, 亂() * 3, 0);
+    }
+    // 頂上的鈴：爬到這裡就是第一名
+    const 鈴 = 組(世界, 0, 高到(88) - 8, 10);
+    投影(放(new THREE.CylinderGeometry(7, 14, 20, 20, 1, true).translate(0, -10, 0), 實("--crown", { metalness: 0.6, roughness: 0.3, side: THREE.DoubleSide }), 鈴));
+    放(new THREE.SphereGeometry(3.5, 8, 6), 實("--crown"), 鈴, 0, -21, 0);
+    // 垂下來的繩子、軟墊、旁邊的樹叢
+    const 繩們 = [340, 470, 730, 860].map((x) => {
+      const 繩 = 組(世界, x - 600, 高到(88), 26);
+      投影(放(new THREE.CylinderGeometry(1.6, 1.6, 高到(88) - 6, 5).translate(0, -(高到(88) - 6) / 2, 0), 實("--c-rope"), 繩));
+      return 繩;
+    });
+    投影(放(new THREE.BoxGeometry(660, 14, 130).translate(0, 7, 0), 實("--c-mat"), 世界, 0, 0, 70));
+    const 叢材 = 實("--c-bush", { flatShading: true });
+    for (let i = 0; i < 18; i++) {
+      const x = (i % 2 ? 1 : -1) * (380 + 亂() * 700), z = -300 + 亂() * 600;
+      投影(放(new THREE.IcosahedronGeometry(20 + 亂() * 30, 1), 叢材, 世界, x, 14, z));
+    }
+    造牌("軟墊");
+
+    return {
+      每格(秒, 差, 靜) {
+        if (靜) return;
+        繩們.forEach((繩, i) => { 繩.rotation.z = Math.sin(秒 * 0.8 + i * 1.7) * 0.01; });
+        鈴.rotation.z = Math.sin(秒 * 2.2) * 0.12;
+      },
+    };
+  },
+
+  巨樹(工) {
+    const { THREE, 世界, 放, 組, 實, 稜, 亮, 投影, 高到, 點到, 梁, 造地, 造牌, 種子亂數, 柏林 } = 工;
+    造地("--t-ground", 9, 11);
+    const 雜 = 柏林(17), 亂 = 種子亂數(17);
+    // 樹幹：上細下粗，樹皮有一條條直紋，樹根往外張開
+    const 樹高 = 高到(230, -40);
+    const g = new THREE.CylinderGeometry(85, 150, 樹高, 56, 40, true, Math.PI).translate(0, 樹高 / 2, 0);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), h = y / 樹高, a = Math.atan2(z, x);
+      const k = 1 + 0.07 * 雜.fbm(Math.cos(a) * 3, h * 2, Math.sin(a) * 3, 3) + 0.035 * Math.sin(a * 16 + 4 * 雜.fbm(Math.cos(a), h * 6, Math.sin(a), 2)) + 0.4 * Math.max(0, 0.12 - h) / 0.12;
+      p.setXYZ(i, x * k, y, z * k);
+    }
+    g.computeVertexNormals();
+    投影(放(g, 實("--t-bark", { roughness: 0.95 }), 世界, 0, 0, -40));
+    const 暗皮 = 實("--t-bark-dark", { roughness: 0.95 });
+    for (let i = 0; i < 6; i++) {
+      const a = Math.PI * (0.1 + i * 0.16);
+      const 根 = 投影(放(new THREE.ConeGeometry(28, 150, 8).translate(0, 75, 0), 暗皮, 世界, Math.cos(a) * 140, 0, -40 + Math.sin(a) * 140));
+      根.rotation.set(Math.sin(a) * 1.25, 0, -Math.cos(a) * 1.25);
+    }
+    // 樹冠：一團團的葉子，放在步道後面
+    const 葉材們 = [稜("--t-leaf"), 稜("--t-leaf-2")];
+    for (let i = 0; i < 40; i++) {
+      const x = (亂() - 0.5) * 820, y = 40 + 亂() * 250, r = 60 + 亂() * 90;
+      const 前 = Math.abs(x) > 330;
+      投影(放(new THREE.IcosahedronGeometry(r, 1), 葉材們[i % 2], 世界, x, 高到(y, -200), 前 ? -40 - 亂() * 80 : -170 - 亂() * 160));
+    }
+    // 平台、撐住平台的樹枝、平台之間的吊橋
+    const 木 = 實("--t-wood");
+    const 點們 = 場景.步道;
+    點們.forEach(([x, y], i) => {
+      const X = x - 600, Y = 高到(y, 70);
+      投影(放(new THREE.CylinderGeometry(60, 60, 8, 24), 木, 世界, X, Y - 4, 70));
+      if (Math.abs(X) > 60) 梁(new THREE.Vector3(Math.sign(X) * 70, Y - 50, 10), new THREE.Vector3(X, Y - 8, 70), 20, 20, 暗皮);
+      if (i === 0) return;
+      const [px, py] = 點們[i - 1], a = 點到(px, py, 70), b = 點到(x, y, 70), 段 = Math.floor(a.distanceTo(b) / 16);
+      for (let j = 1; j < 段; j++) 梁(a.clone().lerp(b, (j - 0.5) / 段), a.clone().lerp(b, (j + 0.2) / 段), 40, 4, 木);
+      for (const dz of [-22, 22]) 梁(a.clone().add(new THREE.Vector3(0, 26, dz)), b.clone().add(new THREE.Vector3(0, 26, dz)), 1.6, 1.6, 實("--c-rope"));
+    });
+    // 樹屋：第一名的終點
+    const 屋 = 組(世界, 0, 高到(170, 40), 30);
+    投影(放(new THREE.BoxGeometry(120, 66, 80).translate(0, 33, 0), 木, 屋));
+    const 頂 = 投影(放(new THREE.CylinderGeometry(1, 82, 50, 4).translate(0, 25, 0), 實("--t-roof"), 屋, 0, 66, 0));
+    頂.rotation.y = Math.PI / 4;
+    放(new THREE.BoxGeometry(24, 38, 2), 暗皮, 屋, -26, 19, 40.5);
+    放(new THREE.BoxGeometry(26, 22, 2), 亮("--b-lit"), 屋, 28, 36, 40.5);
+    // 地上的香菇和小花
+    for (let i = 0; i < 14; i++) {
+      const x = (i % 2 ? 1 : -1) * (260 + 亂() * 700), z = -150 + 亂() * 450;
+      const 菇 = 組(世界, x, 0, z);
+      投影(放(new THREE.CylinderGeometry(4, 5, 14, 8).translate(0, 7, 0), 實("--c-wall"), 菇));
+      投影(放(new THREE.SphereGeometry(11, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), 實("--t-roof"), 菇, 0, 13, 0));
+    }
+    const 花 = new THREE.InstancedMesh(new THREE.SphereGeometry(4, 8, 6), 亮("--t-flower"), 80);
+    { const m = new THREE.Matrix4(); for (let i = 0; i < 80; i++) { m.makeTranslation((亂() - 0.5) * 2200, 4, -300 + 亂() * 700); 花.setMatrixAt(i, m); } }
+    世界.add(花);
+    造牌("樹下");
+    return { 粒子: { 色名: "--t-leaf", 方向: -1, 速: 0.45, 多: 0.2 } };
+  },
+
+  金字塔(工) {
+    const { THREE, 世界, 放, 組, 實, 稜, 亮, 投影, 高到, 地到, 造地, 造牌, 種子亂數 } = 工;
+    造地("--p-sand", 16, 21);
+    // 磚紋貼圖
+    const 磚布 = document.createElement("canvas");
+    磚布.width = 128; 磚布.height = 64;
+    {
+      const g = 磚布.getContext("2d");
+      g.fillStyle = "#fff"; g.fillRect(0, 0, 128, 64);
+      g.strokeStyle = "rgba(0,0,0,0.22)"; g.lineWidth = 2;
+      for (let r = 0; r < 4; r++) {
+        g.beginPath(); g.moveTo(0, r * 16 + 1); g.lineTo(128, r * 16 + 1); g.stroke();
+        for (let c = 0; c < 4; c++) { const x = c * 32 + (r % 2) * 16; g.beginPath(); g.moveTo(x, r * 16); g.lineTo(x, r * 16 + 16); g.stroke(); }
+      }
+    }
+    // 十層台階：一層層往後縮，頂端剛好畫在 SVG 的那一階
+    for (let i = 0; i < 10; i++) {
+      const 半 = 540 * 0.97 * (1 - i / 10), 頂Y = 高到(760 - 62 * (i + 1), 半);
+      const 圖 = new THREE.CanvasTexture(磚布);
+      圖.wrapS = 圖.wrapT = THREE.RepeatWrapping;
+      圖.repeat.set((半 * 2) / 64, 頂Y / 32 / 4);
+      圖.colorSpace = THREE.SRGBColorSpace;
+      投影(放(new THREE.BoxGeometry(半 * 2, 頂Y, 半 * 2).translate(0, 頂Y / 2, 0), 稜(i % 2 ? "--p-stone" : "--p-stone-dark", { map: 圖 }), 世界));
+    }
+    const 尖底 = 高到(140, 52);
+    const 尖 = 投影(放(new THREE.ConeGeometry(34, 高到(96) - 尖底, 4).translate(0, (高到(96) - 尖底) / 2, 0), 實("--p-gold", { metalness: 0.7, roughness: 0.25 }), 世界, 0, 尖底, 0));
+    尖.rotation.y = Math.PI / 4;
+    // 遠方的金字塔和沙丘
+    for (const [x, z, r, h] of [[760, -1100, 300, 380], [-820, -1200, 240, 300], [1150, -1300, 180, 220]]) {
+      const o = 投影(放(new THREE.ConeGeometry(r, h, 4).translate(0, h / 2, 0), 稜("--p-far"), 世界, x, 0, z));
+      o.rotation.y = Math.PI / 4;
+    }
+    for (let i = 0; i < 5; i++) 放(new THREE.SphereGeometry(300, 24, 12).scale(1.6, 0.25, 0.8), 實("--p-sand-2", { roughness: 1 }), 世界, -1200 + i * 600, -10, -700 - (i % 2) * 150);
+    // 綠洲：水池和棕櫚樹
+    const 池z = 地到(805);
+    放(new THREE.CircleGeometry(110, 40).rotateX(-Math.PI / 2).scale(1, 1, 0.55), 實("--p-water", { roughness: 0.1, metalness: 0.3 }), 世界, -480, 1.5, 池z);
+    const 亂 = 種子亂數(8), 幹材 = 實("--p-trunk"), 葉材 = 稜("--p-palm", { side: THREE.DoubleSide });
+    for (const [x, z, 傾] of [[-600, 池z - 70, -0.2], [-360, 池z - 60, 0.25], [-470, 池z - 110, 0.05], [900, 0, 0.15], [1000, -120, -0.1]]) {
+      const 樹 = 組(世界, x, 0, z);
+      let 父 = 樹;
+      for (let j = 0; j < 6; j++) {
+        投影(放(new THREE.CylinderGeometry(4.5 - j * 0.3, 5.2 - j * 0.3, 20, 8).translate(0, 10, 0), 幹材, 父));
+        父 = 組(父, 0, 19, 0);
+        父.rotation.z = 傾 * 0.35;
+      }
+      for (let k = 0; k < 7; k++) {
+        const 片 = 組(父, 0, 0, 0);
+        片.rotation.y = (k / 7) * Math.PI * 2 + 亂();
+        const 葉 = 投影(放(new THREE.ConeGeometry(10, 70, 3).rotateZ(-Math.PI / 2).translate(35, 0, 0).scale(1, 0.25, 1), 葉材, 片));
+        葉.rotation.z = -0.45;
+      }
+    }
+    造牌("綠洲");
+    return { 天: { 雲們: [[100, -170, 0.8, 3], [760, -220, 0.6, 5]] } };
+  },
+};
+
 async function 準備立體() {
   const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");
   const 色 = (名) => 讀色(THREE, 名);
@@ -864,14 +1820,14 @@ async function 準備立體() {
   畫家.shadowMap.type = THREE.PCFSoftShadowMap;
   區.prepend(畫布);
 
-  const 場景 = new THREE.Scene();
+  const 舞台 = new THREE.Scene(); // three.js 的場景；「場景」是山、大樓這些
   const 相機 = new THREE.OrthographicCamera(0, 1200, 0, -860, 1, 9000);
   相機.position.set(0, 0, 4500);
   // 世界的原點放在山腳中心 (600, 760)
   const 世界 = new THREE.Group();
   世界.position.set(600, -760, 0);
   世界.rotation.x = 斜角;
-  場景.add(世界);
+  舞台.add(世界);
 
   // 換風格時只換顏色：每個材質記住自己用哪個顏色 token
   const 染過 = [];
@@ -902,13 +1858,28 @@ async function 準備立體() {
     return new THREE.CanvasTexture(c);
   })();
 
+  // ---- 換算：SVG 的 (x, y) 在「世界」裡的位置 ----
+  // 世界繞 x 軸往後傾，所以立在 z 的東西，頂端要比較高（或低）才會剛好畫在 SVG 的 y
+  const 平滑 = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const 高到 = (y, z = 0) => (760 - y + z * Math.sin(世界.rotation.x)) / Math.cos(世界.rotation.x);
+  const 地到 = (y) => (y - 760) / Math.sin(世界.rotation.x); // 地面上的點要在多深，才會畫在 SVG 的 y
+  const 點到 = (x, y, z = 0) => new THREE.Vector3(x - 600, 高到(y, z), z);
+  // 從 a 到 b 的一根方梁（樓梯、樹枝、木板、繩子都用它）
+  const 梁 = (a, b, 寬, 厚, 材質, 父 = 世界) => {
+    const o = new THREE.Mesh(new THREE.BoxGeometry(a.distanceTo(b), 厚, 寬), 材質);
+    o.position.copy(a).add(b).multiplyScalar(0.5);
+    o.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), b.clone().sub(a).normalize());
+    父.add(o);
+    return 投影(o);
+  };
+
   // ---- 山：細的網格加上雜訊（稜線、溝、小起伏），平滑打光；雪依高度和坡度慢慢過渡 ----
   // 圓錐的接縫轉到背面（thetaStart = π），不然正面會看到一條線。山頂和山腳那一圈不動，輪廓才對得上
-  const 平滑 = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  // 頂半徑不是 0 就是平頂（火山口）
   const 山們 = [];
-  function 造山(父, 半徑, 高, 圈數, 層數, 種子, 雪線, 色名) {
+  function 造山(父, 半徑, 高, 圈數, 層數, 種子, 雪線, 色名, 頂半徑 = 0) {
     const 雜 = 柏林(種子);
-    const g = new THREE.ConeGeometry(半徑, 高, 圈數, 層數, true, Math.PI).translate(0, 高 / 2, 0);
+    const g = new THREE.CylinderGeometry(頂半徑, 半徑, 高, 圈數, 層數, true, Math.PI).translate(0, 高 / 2, 0);
     const p = g.attributes.position;
     const 岩紋 = new Float32Array(p.count), 雪量 = new Float32Array(p.count);
     for (let i = 0; i < p.count; i++) {
@@ -948,116 +1919,53 @@ async function 準備立體() {
       顏.needsUpdate = true;
     }
   }
-  const 高 = 660 / Math.cos(斜角), 半徑 = 560;
-  造山(世界, 半徑, 高, 200, 100, 7, 0.56, ["--d-snow", "--d-snow-shade", "--d-rock", "--d-rock-dark"]);
 
-  // 山頂的大旗
-  const 頂旗 = 組(世界, 0, 高 - 4, 0);
-  投影(放(new THREE.CylinderGeometry(1.6, 1.6, 64, 8).translate(0, 32, 0), 實("--pole"), 頂旗));
-  放(new THREE.SphereGeometry(3, 12, 8), 實("--crown", { metalness: 0.4, roughness: 0.4 }), 頂旗, 0, 65, 0);
-  const 頂布 = new THREE.PlaneGeometry(46, 26, 14, 5).translate(23, 49, 0);
-  投影(放(頂布, 稜("--summit-flag", { side: THREE.DoubleSide }), 頂旗));
-  const 頂布原 = 頂布.attributes.position.array.slice();
-
-  // ---- 地面：鋪到山後面一點就停，不然往後延伸的地面會蓋到天空 ----
-  const 地 = new THREE.PlaneGeometry(5000, 1500, 200, 60).rotateX(-Math.PI / 2).translate(0, -0.5, 150);
-  {
-    const p = 地.attributes.position;
-    const 雜 = 柏林(3); // 雪地上一點點起伏
-    for (let i = 0; i < p.count; i++) p.setY(i, -3 + 7 * 雜.fbm(p.getX(i) * 0.006, 0.5, p.getZ(i) * 0.006, 4));
-  }
-  地.computeVertexNormals();
-  放(地, 實("--d-ground", { roughness: 0.95 }), 世界).receiveShadow = true;
-
-  // 遠山：和主峰一樣的做法，網格粗一點
-  for (const [x, z, r, h, 種子] of [[430, -660, 420, 340, 11], [-470, -630, 360, 270, 23], [40, -760, 300, 230, 31]]) {
-    造山(組(世界, x, 0, z), r, h, 96, 36, 種子, 0.62, ["--d-far-cap", "--d-far-cap", "--d-far", null]);
+  // ---- 地面：鋪到場景後面一點就停，不然往後延伸的地面會蓋到天空 ----
+  function 造地(色名, 起伏 = 7, 種子 = 3) {
+    const 地 = new THREE.PlaneGeometry(5000, 1500, 200, 60).rotateX(-Math.PI / 2).translate(0, -0.5, 150);
+    const p = 地.attributes.position, 雜 = 柏林(種子);
+    for (let i = 0; i < p.count; i++) p.setY(i, -3 + 起伏 * 雜.fbm(p.getX(i) * 0.006, 0.5, p.getZ(i) * 0.006, 4));
+    地.computeVertexNormals();
+    const o = 放(地, 實(色名, { roughness: 0.95 }), 世界);
+    o.receiveShadow = true;
+    return o;
   }
 
-  // 松樹和石頭：避開營地那一排（前面中間）和帳篷
-  const 樹幹材 = 實("--d-trunk"), 樹材 = 實("--d-pine"), 雪材 = 實("--d-snow"), 石材 = 稜("--d-stone");
-  const 亂 = 種子亂數(42);
-  const 擋住了 = (x, z) => Math.hypot(x, z) < 半徑 + 30 || (z > 120 && x > -420 && x < 600) || (x < -380 && x > -620 && z > 260);
-  let 種了 = 0;
-  for (let 試 = 0; 種了 < 34 && 試 < 400; 試++) {
-    const a = 亂() * Math.PI * 2, d = 半徑 + 40 + 亂() * 480;
-    const x = Math.cos(a) * d, z = Math.sin(a) * d * 0.9;
-    if (z < -600 || z > 640 || 擋住了(x, z)) continue;
-    種了++;
-    const 樹 = 組(世界, x, 0, z), k = 0.75 + 亂() * 0.6;
-    樹.scale.setScalar(k);
-    樹.rotation.y = 亂() * 6;
-    投影(放(new THREE.CylinderGeometry(4, 5, 16, 12).translate(0, 8, 0), 樹幹材, 樹));
-    for (const [層, 寬, 高度] of [[14, 30, 40], [34, 23, 34], [52, 15, 28]]) {
-      投影(放(new THREE.ConeGeometry(寬, 高度, 18).translate(0, 層 + 高度 / 2, 0), 樹材, 樹));
-      放(new THREE.ConeGeometry(寬 * 0.42, 高度 * 0.42, 18).translate(0, 層 + 高度 * 0.79, 0), 雪材, 樹);
-    }
-  }
-  for (let i = 0, 放了 = 0; 放了 < 22 && i < 300; i++) {
-    const a = 亂() * Math.PI * 2, d = 半徑 - 20 + 亂() * 160;
-    const x = Math.cos(a) * d, z = Math.sin(a) * d;
-    if ((z > 120 && x > -420 && x < 600) || z < -600) continue;
-    放了++;
-    const 石 = 投影(放(new THREE.DodecahedronGeometry(8 + 亂() * 16, 1), 石材, 世界, x, 2, z));
-    石.scale.set(1, 0.55 + 亂() * 0.4, 0.9);
-    石.rotation.set(亂(), 亂() * 6, 亂());
-  }
-
-  // ---- 營地：帳篷、營火、木牌 ----
-  const 營 = 組(世界, -505, 0, 330);
-  營.rotation.y = 0.5;
-  {
-    const 形 = new THREE.Shape([new THREE.Vector2(-36, 0), new THREE.Vector2(0, 48), new THREE.Vector2(36, 0)]);
-    投影(放(new THREE.ExtrudeGeometry(形, { depth: 62, bevelEnabled: false }).translate(0, 0, -31), 稜("--d-tent"), 營));
-    const 門 = new THREE.Shape([new THREE.Vector2(-13, 0), new THREE.Vector2(0, 28), new THREE.Vector2(13, 0)]);
-    放(new THREE.ShapeGeometry(門), 亮("--d-tent-door"), 營, 0, 0, 31.3);
-    for (const z of [-33, 33]) 投影(放(new THREE.CylinderGeometry(1.2, 1.2, 58, 6).translate(0, 29, 0), 實("--pole"), 營, 0, 0, z));
-  }
-  const 營火 = 組(世界, -430, 0, 500);
-  for (const a of [0.4, -0.4, 1.6]) {
-    const 柴 = 投影(放(new THREE.CylinderGeometry(2.4, 2.4, 26, 6), 樹幹材, 營火, 0, 3, 0));
-    柴.rotation.set(Math.PI / 2, 0, a);
-  }
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    投影(放(new THREE.DodecahedronGeometry(3.4, 0), 石材, 營火, Math.cos(a) * 15, 1.5, Math.sin(a) * 15));
-  }
-  const 火材 = 亮("--d-fire", { transparent: true, opacity: 0.92 });
-  const 火焰 = [[0, 0, 7, 22], [4, 2, 4.5, 15], [-4, -1, 4.5, 14]].map(([x, z, r, h]) =>
-    放(new THREE.ConeGeometry(r, h, 7).translate(0, h / 2, 0), 火材, 營火, x, 3, z));
-  const 火光 = new THREE.PointLight(0xffffff, 0, 420, 1);
-  火光.position.set(0, 26, 0);
-  營火.add(火光);
-  const 牌 = 組(世界, -560, 0, 560);
-  {
+  // ---- 營地的木牌：寫上場景的營地名稱 ----
+  const 牌們 = [];
+  function 造牌(字, x = -560, z = 地到(828)) {
+    const 牌 = 組(世界, x, 0, z);
     const 字布 = document.createElement("canvas");
     字布.width = 256; 字布.height = 128;
     const 筆 = 字布.getContext("2d");
-    const 寫牌 = () => {
+    const 牌圖 = new THREE.CanvasTexture(字布);
+    牌圖.colorSpace = THREE.SRGBColorSpace;
+    const 寫 = () => {
       筆.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--d-sign").trim();
       筆.fillRect(0, 0, 256, 128);
       筆.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--d-flag-ink").trim();
-      筆.font = "800 76px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+      筆.font = `800 ${字.length > 2 ? 60 : 76}px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif`;
       筆.textAlign = "center"; 筆.textBaseline = "middle";
-      筆.fillText("營地", 128, 70);
+      筆.fillText(字, 128, 70);
       牌圖.needsUpdate = true;
     };
-    const 牌圖 = new THREE.CanvasTexture(字布);
-    牌圖.colorSpace = THREE.SRGBColorSpace;
-    投影(放(new THREE.CylinderGeometry(2, 2, 46, 6).translate(0, 23, 0), 樹幹材, 牌));
+    投影(放(new THREE.CylinderGeometry(2, 2, 46, 6).translate(0, 23, 0), 實("--d-trunk"), 牌));
     投影(放(new THREE.BoxGeometry(56, 28, 3), new THREE.MeshStandardMaterial({ map: 牌圖, roughness: 0.9 }), 牌, 0, 40, 2));
-    牌.寫 = 寫牌;
+    牌們.push(寫);
+    return 牌;
   }
 
-  // ---- 天空：太陽（夜裡是月亮）、星星、雲 ----
-  const 太陽 = 放(new THREE.CircleGeometry(52, 48), 亮("--d-sun"), 場景, 1060, -110, -4000);
-  const 光圈們 = [[80, 0.3], [120, 0.16], [170, 0.08]].map(([r, o]) =>
-    放(new THREE.CircleGeometry(r, 48), 亮("--d-sun", { transparent: true, opacity: o, depthWrite: false }), 場景, 1060, -110, -4100 - r));
-  const 星數 = 260, 星點 = new Float32Array(星數 * 3);
-  const 星幾何 = new THREE.BufferGeometry();
-  星幾何.setAttribute("position", new THREE.BufferAttribute(星點, 3));
-  const 星材 = 染(new THREE.PointsMaterial({ size: 3.2 * 畫家.getPixelRatio(), sizeAttenuation: false, transparent: true, map: 雪花圖, depthWrite: false }), "--d-star");
-  場景.add(new THREE.Points(星幾何, 星材));
+  function 飄(幾何, 原, 秒, 長, 幅, 相位) {
+    const p = 幾何.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = 原[i * 3], u = x / 長;
+      p.setZ(i, 原[i * 3 + 2] + Math.sin(x * 0.22 - 秒 * 5 + 相位) * u * 幅);
+      p.setY(i, 原[i * 3 + 1] + Math.sin(x * 0.15 - 秒 * 3.4 + 相位) * u * 幅 * 0.35);
+    }
+    p.needsUpdate = true;
+    幾何.computeVertexNormals();
+  }
+
   // 雲：在畫布上疊很多顆柔邊的圓，底部壓平、加一點陰影，做成蓬鬆的雲貼圖
   function 雲圖(種子) {
     const 亂 = 種子亂數(種子), c = document.createElement("canvas");
@@ -1083,12 +1991,28 @@ async function 準備立體() {
     圖.colorSpace = THREE.SRGBColorSpace;
     return 圖;
   }
-  const 雲們 = [[100, -170, 1, 3], [700, -240, 0.8, 5], [-300, -300, 1.2, 8], [420, -120, 0.6, 13]].map(([x, y, k, 種子]) =>
-    放(new THREE.PlaneGeometry(300 * k, 150 * k), 亮("--d-cloud", { map: 雲圖(種子), transparent: true, depthWrite: false }), 場景, x, y, -3000));
+
+  // ---- 場景自己的布景（山、大樓、深海⋯，見 立體布景們） ----
+  const 工具 = { THREE, 世界, 舞台, 放, 組, 實, 稜, 亮, 染, 投影, 色, 平滑, 高到, 地到, 點到, 梁, 造山, 造地, 造牌, 飄, 雲圖, 雪花圖, 種子亂數, 柏林 };
+  const 布景 = 立體布景們[設定.場景](工具);
+  const 天 = { 太陽: true, 雲: true, 雲們: [[100, -170, 1, 3], [700, -240, 0.8, 5], [-300, -300, 1.2, 8], [420, -120, 0.6, 13]], ...布景.天 };
+
+  // ---- 天空：太陽（夜裡是月亮）、星星、雲 ----
+  const 太陽 = 放(new THREE.CircleGeometry(52, 48), 亮("--d-sun"), 舞台, 1060, -110, -4000);
+  const 光圈們 = [[80, 0.3], [120, 0.16], [170, 0.08]].map(([r, o]) =>
+    放(new THREE.CircleGeometry(r, 48), 亮("--d-sun", { transparent: true, opacity: o, depthWrite: false }), 舞台, 1060, -110, -4100 - r));
+  for (const o of [太陽, ...光圈們]) o.visible = 天.太陽;
+  const 星數 = 260, 星點 = new Float32Array(星數 * 3);
+  const 星幾何 = new THREE.BufferGeometry();
+  星幾何.setAttribute("position", new THREE.BufferAttribute(星點, 3));
+  const 星材 = 染(new THREE.PointsMaterial({ size: 3.2 * 畫家.getPixelRatio(), sizeAttenuation: false, transparent: true, map: 雪花圖, depthWrite: false }), "--d-star");
+  舞台.add(new THREE.Points(星幾何, 星材));
+  const 雲們 = 天.雲 ? 天.雲們.map(([x, y, k, 種子]) =>
+    放(new THREE.PlaneGeometry(300 * k, 150 * k), 亮("--d-cloud", { map: 雲圖(種子), transparent: true, depthWrite: false }), 舞台, x, y, -3000)) : [];
 
   // ---- 燈 ----
   const 天光 = new THREE.HemisphereLight(0xffffff, 0x888888, 1);
-  場景.add(天光);
+  舞台.add(天光);
   const 日光 = new THREE.DirectionalLight(0xffffff, 2.5);
   日光.castShadow = true;
   日光.shadow.mapSize.set(2048, 2048);
@@ -1098,21 +2022,24 @@ async function 準備立體() {
   世界.add(日光, 日光.target);
   const 補光 = new THREE.DirectionalLight(0xffffff, 0.5);
   補光.position.set(-200, 300, 4000);
-  場景.add(補光);
+  舞台.add(補光);
 
-  // ---- 下雪：近的大片、遠的小片 ----
-  const 雪層們 = [[300, 3, 1], [220, 5, 1.6]].map(([數, 大小, 快]) => {
+  // ---- 粒子：下雪、泡泡、火星、落葉⋯（場景說要什麼就飄什麼）。近的大片、遠的小片 ----
+  const 粒 = 布景.粒子;
+  const 粒層們 = !粒 ? [] : [[300, 3, 1], [220, 5, 1.6]].map(([數, 大小, 快]) => {
+    數 = Math.round(數 * (粒.多 ?? 1));
+    大小 *= 粒.大 ?? 1;
     const 點 = new Float32Array(數 * 3);
     const 幾何 = new THREE.BufferGeometry();
     幾何.setAttribute("position", new THREE.BufferAttribute(點, 3));
-    const 材質 = 染(new THREE.PointsMaterial({ size: 大小 * 1.6 * 畫家.getPixelRatio(), sizeAttenuation: false, transparent: true, opacity: 0.9, map: 雪花圖, depthWrite: false }), "--d-flake");
+    const 材質 = 染(new THREE.PointsMaterial({ size: 大小 * 1.6 * 畫家.getPixelRatio(), sizeAttenuation: false, transparent: true, opacity: 0.9, map: 雪花圖, depthWrite: false }), 粒.色名);
     const 片 = new THREE.Points(幾何, 材質);
-    場景.add(片);
-    return { 數, 點, 幾何, 快, 片 };
+    舞台.add(片);
+    return { 數, 點, 幾何, 快: 快 * (粒.速 ?? 1), 片 };
   });
   const 隨 = (a, b) => a + Math.random() * (b - a);
   const 撒 = () => {
-    for (const 層 of 雪層們) {
+    for (const 層 of 粒層們) {
       for (let i = 0; i < 層.數; i++) 層.點.set([隨(相機.left, 相機.right), 隨(相機.bottom, 相機.top), 4000], i * 3);
       層.幾何.attributes.position.needsUpdate = true;
     }
@@ -1120,18 +2047,18 @@ async function 準備立體() {
     星幾何.attributes.position.needsUpdate = true;
   };
 
-  // ---- 步道：一顆顆小石頭，畫在山的前面、小人的後面 ----
+  // ---- 步道：一顆顆小石頭，畫在布景的前面、小人的後面 ----
   const 步道點 = Math.floor(步道長 / 15);
   const 步道石 = new THREE.InstancedMesh(new THREE.SphereGeometry(4.2, 12, 8), 實("--d-trail", { roughness: 0.6 }), 步道點);
   {
     const m = new THREE.Matrix4();
     for (let i = 0; i < 步道點; i++) {
-      const p = 步道.getPointAtLength(i * 15 + 4);
+      const p = 走步道(場景, i * 15 + 4);
       m.makeScale(1, 0.8, 1).setPosition(p.x, -p.y, 1100);
       步道石.setMatrixAt(i, m);
     }
   }
-  場景.add(步道石);
+  舞台.add(步道石);
 
   // ---- 小人 ----
   const 幾 = {
@@ -1248,7 +2175,7 @@ async function 準備立體() {
     t3.旗圖.needsUpdate = true;
   }
   function 造立體隊(組別, 隊) {
-    const 根 = 組(場景);
+    const 根 = 組(舞台);
     根.rotation.x = 斜角;
     const 衣 = new THREE.MeshStandardMaterial({ color: new THREE.Color(隊.色), roughness: 0.62 });
     const 衣暗 = new THREE.MeshStandardMaterial({ color: new THREE.Color(隊.色).multiplyScalar(0.6), roughness: 0.75 });
@@ -1324,17 +2251,6 @@ async function 準備立體() {
       });
     }
   }
-  function 飄(幾何, 原, 秒, 長, 幅, 相位) {
-    const p = 幾何.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = 原[i * 3], u = x / 長;
-      p.setZ(i, 原[i * 3 + 2] + Math.sin(x * 0.22 - 秒 * 5 + 相位) * u * 幅);
-      p.setY(i, 原[i * 3 + 1] + Math.sin(x * 0.15 - 秒 * 3.4 + 相位) * u * 幅 * 0.35);
-    }
-    p.needsUpdate = true;
-    幾何.computeVertexNormals();
-  }
-
   function 跟上隊伍(現在, 秒, 差, 靜) {
     const 還在 = new Set(隊伍.values());
     for (const [隊, t3] of 隊3D) if (!還在.has(隊)) 拆隊(隊, t3);
@@ -1389,11 +2305,11 @@ async function 準備立體() {
     日光.color.copy(色("--d-sunlight"));
     日光.intensity = 光.日;
     補光.intensity = 光.補;
-    火光.color.copy(色("--d-fire"));
-    星材.opacity = 光.星;
-    for (const 層 of 雪層們) 層.片.visible = !!光.雪; // 日出是晴天，不下雪
+    星材.opacity = typeof 天.星 === "function" ? 天.星(光) : 天.星 ?? 光.星;
+    for (const 層 of 粒層們) 層.片.visible = 粒.開 ? !!粒.開(光) : true;
+    布景.上色?.(光);
     for (const t3 of 隊3D.values()) 寫旗(t3);
-    牌.寫();
+    for (const 寫 of 牌們) 寫();
   }
 
   const 不動 = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1402,33 +2318,32 @@ async function 準備立體() {
     const 秒 = 現在 / 1000, 差 = Math.min(0.05, Math.max(0, 秒 - 上一格)), 靜 = 不動.matches;
     上一格 = 秒;
     if (!靜) {
-      日光.position.set(500 + 320 * Math.sin(秒 * 0.1), 900, 520); // 太陽慢慢移，山的明暗跟著變
+      日光.position.set(500 + 320 * Math.sin(秒 * 0.1), 900, 520); // 太陽慢慢移，布景的明暗跟著變
       for (const [i, 朵] of 雲們.entries()) {
         朵.position.x += 差 * (9 + i * 4);
         if (朵.position.x > 相機.right + 220) 朵.position.x = 相機.left - 220;
       }
-      for (const 層 of 雪層們) {
+      for (const 層 of 粒層們) {
         for (let i = 0; i < 層.數; i++) {
           const j = i * 3;
           層.點[j] += Math.sin(秒 + i) * 9 * 差 * 層.快;
-          層.點[j + 1] -= (26 + (i % 7) * 7) * 差 * 層.快;
+          層.點[j + 1] += 粒.方向 * (26 + (i % 7) * 7) * 差 * 層.快;
           if (層.點[j + 1] < 相機.bottom) { 層.點[j + 1] = 相機.top; 層.點[j] = 隨(相機.left, 相機.right); }
+          if (層.點[j + 1] > 相機.top) { 層.點[j + 1] = 相機.bottom; 層.點[j] = 隨(相機.left, 相機.right); }
         }
         層.幾何.attributes.position.needsUpdate = true;
       }
-      飄(頂布, 頂布原, 秒, 46, 4, 0);
-      火焰.forEach((f, i) => f.scale.set(1, 0.8 + 0.3 * Math.abs(Math.sin(秒 * (9 + i * 3) + i)), 1));
       for (const [i, 圈] of 光圈們.entries()) 圈.scale.setScalar(1 + 0.04 * Math.sin(秒 * 1.3 + i));
     } else {
       日光.position.set(500, 900, 520);
     }
-    火光.intensity = 光.火 * 2.2 * (靜 ? 1 : 0.85 + 0.15 * Math.sin(秒 * 13));
+    布景.每格?.(秒, 差, 靜, 光);
     跟上隊伍(現在, 秒, 差, 靜);
-    畫家.render(場景, 相機);
+    畫家.render(舞台, 相機);
     requestAnimationFrame(畫一格);
   }
   new ResizeObserver(對齊).observe(區);
-  document.fonts?.ready.then(() => { for (const t3 of 隊3D.values()) 寫旗(t3); 牌.寫(); });
+  document.fonts?.ready.then(() => { for (const t3 of 隊3D.values()) 寫旗(t3); for (const 寫 of 牌們) 寫(); });
 
   document.documentElement.classList.add("有3D");
   對齊();
@@ -1440,7 +2355,7 @@ async function 準備立體() {
 
 function 開立體() {
   立體承諾 = 立體承諾 || 準備立體().catch((錯) => {
-    console.warn("3D 開不起來，先畫平面的山", 錯);
+    console.warn("3D 開不起來，先畫平面的布景", 錯);
     return null;
   });
   return 立體承諾;
