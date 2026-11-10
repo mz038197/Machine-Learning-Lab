@@ -16,6 +16,9 @@ def _source(tmp_path: Path) -> Path:
     (source / "data" / "ex2data1.csv").write_text("1,2,0\n", encoding="utf-8")
     (source / "data" / "ex2data2.csv").write_text("3,4,1\n", encoding="utf-8")
     (source / "data" / "mlb_games.csv").write_text("games\n", encoding="utf-8")
+    (source / "images").mkdir()
+    (source / "images" / "admission.jpg").write_bytes(b"jpg")
+    (source / "images" / "flow.png").write_bytes(b"png")
     return source
 
 
@@ -42,9 +45,43 @@ def test_writes_experiment_folder_and_adds_packages(tmp_path: Path) -> None:
     assert (folder / "data" / "ex2data1.csv").read_text(encoding="utf-8") == "1,2,0\n"
     assert (folder / "data" / "ex2data2.csv").read_text(encoding="utf-8") == "3,4,1\n"
     assert (folder / "data" / "mlb_games.csv").read_text(encoding="utf-8") == "games\n"
+    assert (folder / "images" / "admission.jpg").read_bytes() == b"jpg"
+    assert (folder / "images" / "flow.png").read_bytes() == b"png"
     assert calls == [
         ["uv", "add", "--directory", str(project), *PACKAGES],
     ]
+
+
+def test_missing_image_removes_the_folder(tmp_path: Path) -> None:
+    project = tmp_path / "student"
+    project.mkdir()
+    (project / "pyproject.toml").write_text("x", encoding="utf-8")
+    source = _source(tmp_path)
+    (source / "images" / "flow.png").unlink()
+    calls: list[list[str]] = []
+
+    result = materialize(project, source_dir=source, run_uv=_runner(calls))
+
+    assert result.status == "failed"
+    assert not (project / "邏輯回歸").exists()
+    assert calls == []
+
+
+def test_notebook_images_ship_with_the_experiment() -> None:
+    experiment = Path(__file__).resolve().parents[1] / "src" / "add_logistic_regression" / "experiment"
+    document = json.loads((experiment / NOTEBOOK).read_text(encoding="utf-8"))
+    from add_logistic_regression.core import IMAGE_FILES
+
+    referenced = set()
+    for cell in document["cells"]:
+        assert "attachments" not in cell
+        source = "".join(cell.get("source", []))
+        for name in IMAGE_FILES:
+            if f"(images/{name})" in source:
+                referenced.add(name)
+    assert referenced == set(IMAGE_FILES)
+    for name in IMAGE_FILES:
+        assert (experiment / "images" / name).is_file()
 
 
 def test_inits_uv_project_when_pyproject_is_missing(tmp_path: Path) -> None:

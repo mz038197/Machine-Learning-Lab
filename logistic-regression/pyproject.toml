@@ -16,7 +16,7 @@ add-logistic-regression = "add_logistic_regression.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-add_logistic_regression = ["experiment/*", "experiment/data/*"]
+add_logistic_regression = ["experiment/*", "experiment/data/*", "experiment/images/*"]
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
