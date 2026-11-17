@@ -17,6 +17,8 @@ def _source(tmp_path: Path) -> Path:
     (source / "images").mkdir()
     (source / "images" / "roasting.jpg").write_bytes(b"jpg")
     (source / "images" / "flow.png").write_bytes(b"png")
+    for name in ("neuron_linear.png", "neuron_sigmoid.png", "network.png"):
+        (source / "images" / name).write_bytes(b"png")
     return source
 
 
@@ -189,6 +191,6 @@ def test_packaged_source_has_the_brief_workbook_and_data() -> None:
 
 def test_teacher_reference_is_not_packaged() -> None:
     source = default_source_dir()
-    teacher = Path(__file__).resolve().parents[1] / "teacher" / "fitness_grade_teacher.py"
+    teacher = Path(__file__).resolve().parents[1] / "teacher" / "體能等級_老師版.ipynb"
     assert teacher.is_file()
     assert not any(path.name == teacher.name for path in source.rglob("*"))

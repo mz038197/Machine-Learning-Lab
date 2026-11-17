@@ -12,7 +12,7 @@ BRIEF_NAME = "委託.html"
 GRADE_NOTEBOOK_NAME = "體能等級.ipynb"
 ROOT_FILES = (NOTEBOOK_NAME, BRIEF_NAME, GRADE_NOTEBOOK_NAME)
 DATA_FILES = ("body_performance.csv",)
-IMAGE_FILES = ("roasting.jpg", "flow.png")
+IMAGE_FILES = ("roasting.jpg", "flow.png", "neuron_linear.png", "neuron_sigmoid.png", "network.png")
 PACKAGES = ("numpy", "matplotlib", "tensorflow", "ipykernel")
 
 
