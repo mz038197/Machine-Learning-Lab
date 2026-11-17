@@ -12,6 +12,7 @@ BRIEF_NAME = "委託.html"
 GRADE_NOTEBOOK_NAME = "體能等級.ipynb"
 ROOT_FILES = (NOTEBOOK_NAME, BRIEF_NAME, GRADE_NOTEBOOK_NAME)
 DATA_FILES = ("body_performance.csv",)
+IMAGE_FILES = ("roasting.jpg", "flow.png")
 PACKAGES = ("numpy", "matplotlib", "tensorflow", "ipykernel")
 
 
@@ -94,13 +95,14 @@ def _place_experiment(root: Path, source_dir: Path) -> None:
             if not source.is_file():
                 raise FileNotFoundError(source)
             shutil.copy2(source, staging / name)
-        data_dir = staging / "data"
-        data_dir.mkdir()
-        for name in DATA_FILES:
-            source = source_dir / "data" / name
-            if not source.is_file():
-                raise FileNotFoundError(source)
-            shutil.copy2(source, data_dir / name)
+        for subdir, names in (("data", DATA_FILES), ("images", IMAGE_FILES)):
+            target_dir = staging / subdir
+            target_dir.mkdir()
+            for name in names:
+                source = source_dir / subdir / name
+                if not source.is_file():
+                    raise FileNotFoundError(source)
+                shutil.copy2(source, target_dir / name)
         if not _is_complete(staging):
             raise FileNotFoundError("實驗夾不完整")
         staging.rename(destination)
@@ -112,6 +114,8 @@ def _place_experiment(root: Path, source_dir: Path) -> None:
 
 
 def _is_complete(folder: Path) -> bool:
-    return all((folder / name).is_file() for name in ROOT_FILES) and all(
-        (folder / "data" / name).is_file() for name in DATA_FILES
+    return (
+        all((folder / name).is_file() for name in ROOT_FILES)
+        and all((folder / "data" / name).is_file() for name in DATA_FILES)
+        and all((folder / "images" / name).is_file() for name in IMAGE_FILES)
     )

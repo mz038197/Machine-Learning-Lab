@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from add_neural_networks.core import default_source_dir, materialize
@@ -13,6 +14,9 @@ def _source(tmp_path: Path) -> Path:
     (source / "委託.html").write_text("brief", encoding="utf-8")
     (source / "體能等級.ipynb").write_text("grade", encoding="utf-8")
     (source / "data" / "body_performance.csv").write_text("body\n", encoding="utf-8")
+    (source / "images").mkdir()
+    (source / "images" / "roasting.jpg").write_bytes(b"jpg")
+    (source / "images" / "flow.png").write_bytes(b"png")
     return source
 
 
@@ -37,9 +41,43 @@ def test_writes_experiment_folder_and_adds_packages(tmp_path: Path) -> None:
     assert (folder / "委託.html").read_text(encoding="utf-8") == "brief"
     assert (folder / "體能等級.ipynb").read_text(encoding="utf-8") == "grade"
     assert (folder / "data" / "body_performance.csv").read_text(encoding="utf-8") == "body\n"
+    assert (folder / "images" / "roasting.jpg").read_bytes() == b"jpg"
+    assert (folder / "images" / "flow.png").read_bytes() == b"png"
     assert calls == [
         ["uv", "add", "--directory", str(project), *PACKAGES],
     ]
+
+
+def test_missing_image_removes_the_folder(tmp_path: Path) -> None:
+    project = tmp_path / "student"
+    project.mkdir()
+    (project / "pyproject.toml").write_text("x", encoding="utf-8")
+    source = _source(tmp_path)
+    (source / "images" / "flow.png").unlink()
+    calls: list[list[str]] = []
+
+    result = materialize(project, source_dir=source, run_uv=_runner(calls))
+
+    assert result.status == "failed"
+    assert not (project / "神經網路").exists()
+    assert calls == []
+
+
+def test_notebook_images_ship_with_the_experiment() -> None:
+    experiment = Path(__file__).resolve().parents[1] / "src" / "add_neural_networks" / "experiment"
+    document = json.loads((experiment / NOTEBOOK).read_text(encoding="utf-8"))
+    from add_neural_networks.core import IMAGE_FILES
+
+    referenced = set()
+    for cell in document["cells"]:
+        assert "attachments" not in cell
+        source = "".join(cell.get("source", []))
+        for name in IMAGE_FILES:
+            if f"(images/{name})" in source:
+                referenced.add(name)
+    assert referenced == set(IMAGE_FILES)
+    for name in IMAGE_FILES:
+        assert (experiment / "images" / name).is_file()
 
 
 def test_inits_uv_project_when_pyproject_is_missing(tmp_path: Path) -> None:
