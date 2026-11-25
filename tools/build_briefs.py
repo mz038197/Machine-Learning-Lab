@@ -1,4 +1,4 @@
-"""產生三個實驗的 委託.html。
+"""產生三個實驗的 委託.html，以及線性回歸備案委託的 委託.html。
 
 委託的文字（欄位說明、提醒、步驟、交付清單）都寫在下面的 PAGES。
 改了委託內容、版面，或改了 data/ 裡委託用的 CSV，就重跑：
@@ -7,6 +7,9 @@
 
 CSV 會原樣嵌進 HTML，學生直接用瀏覽器打開就能瀏覽資料。
 各實驗的 tests/test_brief.py 會檢查嵌入的資料跟 CSV 一致。
+
+備案委託放在 linear-regression/備案/ 底下，不在套件裡，安裝實驗時學生不會拿到。
+老師需要時，把整個備案資料夾發給學生。
 """
 from pathlib import Path
 
@@ -14,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LIN = ROOT / "linear-regression/src/add_linear_regression/experiment"
 LOG = ROOT / "logistic-regression/src/add_logistic_regression/experiment"
 NN = ROOT / "neural-networks/src/add_neural_networks/experiment"
+PEAK = ROOT / "linear-regression/備案/尖峰負載"
 
 STYLE = """<style>
   :root {
@@ -446,6 +450,11 @@ FIT_SVG = """    <svg viewBox="0 0 120 120" aria-hidden="true">
       <rect x="98" y="48" width="8" height="24" rx="3" fill="#c4622a"/>
     </svg>"""
 
+PLUG_SVG = """    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle cx="60" cy="60" r="48" fill="#f7e7a8"/>
+      <path d="M66 18 L36 66 H56 L50 102 L84 50 H63 Z" fill="#e0a800" stroke="#b07f00" stroke-width="3" stroke-linejoin="round"/>
+    </svg>"""
+
 PAGES = [
     dict(
         dir=LIN, csv="taipei2_cabbage.csv", notebook="高麗菜估價.ipynb", title="高麗菜估價委託",
@@ -562,6 +571,44 @@ PAGES = [
             "測試資料的正確率，以及同一份資料只用輸出層、沒有隱藏層時的正確率",
             "一張看得出年齡怎麼改變等級的圖",
             "你自己的判斷：同樣的成績，年齡或性別不同時等級怎麼走；加上隱藏層差多少",
+        ],
+    ),
+    dict(
+        dir=PEAK, csv="taipower_peak.csv", notebook="尖峰負載.ipynb", title="尖峰負載委託",
+        svg=PLUG_SVG, eyebrow="線性回歸 ・ 備案", h1="台電每日<br>全台尖峰負載",
+        lead="2025 年 1 月到 2026 年 7 月，台電每天都公布全台的尖峰負載，也就是當天用電最多那一刻的負載。想像一天結束後，你已經知道當天台北的天氣，也知道那天有沒有放假，請估計那天的全台尖峰負載，看天氣和放假怎麼影響用電。這是事後解釋，不是預測明天的用電。",
+        target="尖峰負載（萬瓩）", filter="星期",
+        facts=[("577 天", "每一列是一天"), ("8 個欄位", "負載、天氣、放假")],
+        row_note="一列是一天。",
+        cols=[
+            ("日期", "那一天。"),
+            ("星期", "一到日。"),
+            ("尖峰負載（萬瓩）", "全台當天用電最多那一刻的負載。1 萬瓩是 1 萬千瓦，也就是 10 MW。"),
+            ("台北最高溫（℃）", "台北當天的最高氣溫。"),
+            ("台北最低溫（℃）", "台北當天的最低氣溫。"),
+            ("台北雨量（毫米）", "台北當天的雨量。"),
+            ("放假（1為放假）", "行政機關那天放假就是 1。週末和國定假日是 1，要補班的週六是 0。"),
+            ("假日名稱", "國定假日或補假的名稱。其他日子寫「無」。"),
+        ],
+        notes="""    <p class="rule"><strong>可以想想：</strong>天冷的時候，用電不太跟著氣溫變；天熱以後，用電才明顯上升，所以不一定是一條直線。上班日和放假日的用電水準也不一樣。</p>
+    <p class="rule"><strong>只是代理：</strong>用電是全台的，氣溫和雨量只取台北一個點。</p>
+    <p class="rule"><strong>留一部分當測試：</strong>隨機留 20% 的日子當測試資料，不要拿來訓練。訓練完，訓練資料和測試資料各算一次 Cost。</p>
+    <p class="rule"><strong>資料來源：</strong>台灣電力公司「過去電力供需資訊」（政府資料開放平臺 19995，政府資料開放授權條款第 1 版）；天氣來自 Open-Meteo Historical Weather API（CC BY 4.0）；放假依人事行政總處辦公日曆表。僅供課堂使用。</p>""",
+        data_note="資料沒有空白。用電最少的那幾天，可以按尖峰負載排序找找看。",
+        steps=[
+            ("資料", "讀進資料，看筆數和欄位，畫出氣溫和尖峰負載的關係。"),
+            ("前處理", "決定用哪些欄，文字欄要轉成數字或不用，留 20% 當測試，必要時縮放。"),
+            ("訓練", "訓練線性回歸，看係數，比較訓練和測試的 Cost，畫出貼合程度。"),
+            ("你的判斷", "用自己的話寫結論，不要請 AI 寫。"),
+        ],
+        libs="numpy、matplotlib、scikit-learn",
+        checks=[
+            "這次用了哪些欄，沒用的欄為什麼不用",
+            "有沒有因尺度不同而縮放",
+            "訓練後的係數",
+            "訓練資料和測試資料各自的 Cost",
+            "一張看得出貼合程度的圖",
+            "你自己的判斷：天氣變熱時用電怎麼走，冷天和熱天一樣嗎，放假差多少",
         ],
     ),
 ]
